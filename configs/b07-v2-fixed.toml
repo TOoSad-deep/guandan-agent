@@ -1,0 +1,71 @@
+# B07/P16 fixed synthetic scenario, not an official platform match.
+# Use only scripts/probe_b07_review.py. Main+review together: at most 2 real calls.
+# One request, no automatic replay or replenishment.
+[run]
+policy = "V0"
+matches = 1
+evaluation_team = 0
+split = "development"
+experiment_id = "b07-v2-fixed-review"
+seats = [{ seat = 0, user_name = "b07-fixed-p0", policy = "V2" }]
+
+[platform]
+url = "ws://127.0.0.1:18181"
+adapter_version = "openguandan-e92db7f-v1"
+rules_version = "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+mode = "create"
+server_rounds = 1
+
+[decision]
+total_s = 30.0
+submit_reserve_s = 1.0
+confirm_timeout_s = 5.0
+
+[tools]
+total_s = 0.5
+deep_eval_limit = 0
+candidate_target = 12
+candidate_hard_limit = 24
+engine_stop_grace_s = 0.5
+
+[model]
+name = "deepseek-flash"
+timeout_s = 20.0
+max_output_tokens = 384
+max_input_bytes = 24576
+max_retries = 0
+thinking = false
+concurrency = 1
+
+[review]
+# Omit enabled so it follows effective seat policies: V2 true, otherwise false.
+min_remaining_s = 2.0
+
+[batch]
+max_model_calls = 2
+
+[offline]
+max_model_calls = 0
+
+[history]
+max_events = 100
+
+[logs]
+queue_capacity = 4096
+cache_events = 2000
+max_query_limit = 200
+
+[ui]
+poll_ms = 1000
+
+[web]
+host = "127.0.0.1"
+port = 8000
+workers = 1
+reload = false
+
+[versions]
+policy = "b05-rules-v1"
+candidate = "b05-candidates-v1"
+fallback = "b02-cheap-v1"
+prompt = "b07-review-v1"

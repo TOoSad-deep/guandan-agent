@@ -1,0 +1,38 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Isolated phase-three runtime and dependency cache
+.venv-phase3/
+experiments/phase3/.cache/
+experiments/phase3/workspace/
+__pycache__/
+*.pyc
+
+# Formal application generated files (root runtime is not the source package)
+/.venv/
+/runtime/
+/runs/
+/artifacts/
+/dist/
+/.pytest_cache/
+*.egg-info/
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
+.ruff_cache/
+.mypy_cache/
+
+# Third-party downloads stay local; fetch the pinned platform from upstream.
+/research/
+
+# Personal course documents and generated probe output stay local.
+/docs/交付/课程报告/
+/experiments/phase3/results/*
+!/experiments/phase3/results/probe_platform_run_02/
+/experiments/phase3/results/probe_platform_run_02/*
+!/experiments/phase3/results/probe_platform_run_02/normal/
+!/experiments/phase3/results/probe_platform_run_02/disconnect/

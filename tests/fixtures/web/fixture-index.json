@@ -1,0 +1,29 @@
+{
+  "review_changed": {
+    "run_id": "64cf25c2-e154-468f-87a3-41dc01a1fa8a",
+    "label": "示例 · 条件复核改选",
+    "session_id": "8322d559-28d7-45b7-85af-d8efc5c2b749",
+    "request_id": "8322d559-28d7-45b7-85af-d8efc5c2b749:q1",
+    "source": "artifacts/b07/test-output/test_fixed_v2_main_review_uses1/64cf25c2-e154-468f-87a3-41dc01a1fa8a",
+    "synthetic": true,
+    "real_model_calls": 0
+  },
+  "fallback": {
+    "run_id": "90ca8ca4-8a3e-48f8-95da-1d66ac754828",
+    "label": "示例 · 复核失败兜底",
+    "session_id": "42bd93b1-51b2-4949-aec6-1176beb8b926",
+    "request_id": "42bd93b1-51b2-4949-aec6-1176beb8b926:q1",
+    "source": "artifacts/b07/test-output/test_fixed_probe_failed_review0/90ca8ca4-8a3e-48f8-95da-1d66ac754828",
+    "synthetic": true,
+    "real_model_calls": 0
+  },
+  "rule_game": {
+    "run_id": "d45606da-be40-49ae-9172-d4d6a9854917",
+    "label": "示例 · 四席规则对局",
+    "session_id": "d3035dac-128a-465c-b37c-ed4475c4ed65",
+    "request_id": "d3035dac-128a-465c-b37c-ed4475c4ed65:q1",
+    "source": "tests/fixtures/audit/valid_scripted_run",
+    "synthetic": true,
+    "real_model_calls": 0
+  }
+}

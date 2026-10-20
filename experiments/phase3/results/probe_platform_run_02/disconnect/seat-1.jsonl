@@ -1,0 +1,5 @@
+{"sequence": 3, "elapsed_seconds": 0.009596, "seat": 1, "connection_generation": 1, "direction": "send", "message": {"type": "JOIN_ROOM", "data": {"userId": "phase3-disconnect-77cc2308ea-1", "roomId": 4, "seatNum": 1}}}
+{"sequence": 4, "elapsed_seconds": 0.009959, "seat": 1, "connection_generation": 1, "direction": "receive", "message": {"code": 200, "data": {"userNum": 1, "roomId": 4}, "type": "JOIN_ROOM"}}
+{"sequence": 10, "elapsed_seconds": 0.01061, "seat": 1, "connection_generation": 1, "direction": "receive", "message": {"code": 200, "data": {"roomId": 4}, "type": "JOIN"}}
+{"sequence": 12, "elapsed_seconds": 0.011216, "seat": 1, "connection_generation": 1, "direction": "receive", "message": {"code": 200, "data": {"roomId": 4}, "type": "JOIN"}}
+{"sequence": 16, "elapsed_seconds": 1.016697, "seat": 1, "connection_generation": 1, "direction": "receive", "message": {"myPos": 1, "stage": "beginning", "levelCard": "2", "handCards": ["S3", "C4", "H5", "C5", "D5", "S6", "S7", "S7", "H8", "C8", "H9", "ST", "SJ", "CJ", "DJ", "SJ", "SQ", "HK", "SK", "DK", "DK", "SA", "DA", "SA", "SB", "SB", "HR"], "type": "notify"}}

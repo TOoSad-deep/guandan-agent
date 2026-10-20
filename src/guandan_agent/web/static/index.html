@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>掼蛋 Agent · 对局工作台</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">跳到对局内容</a>
+  <header class="site-header">
+    <div class="brand"><span class="brand-icon" aria-hidden="true">♠</span><div><h1>掼蛋 <span>Agent</span></h1><p>看见每一步决策</p></div></div>
+    <nav aria-label="工作台视图" class="view-tabs"><button id="table-tab" class="tab active" aria-pressed="true">对局工作台</button><button id="reports-tab" class="tab" aria-pressed="false">已生成复盘</button></nav>
+    <span class="local-badge"><i aria-hidden="true"></i>本地工作空间</span>
+  </header>
+
+  <main id="workspace">
+    <section class="run-controls" aria-label="运行控制">
+      <div class="control-field run-field"><label for="run-select">当前运行</label><select id="run-select"><option value="">正在读取运行…</option></select></div>
+      <button id="refresh-runs" class="icon-button" aria-label="刷新运行列表" title="刷新运行列表">↻</button>
+      <div class="control-divider"></div>
+      <div class="control-field config-field"><label for="config-select">启动配置</label><select id="config-select"><option value="">正在读取配置…</option></select></div>
+      <button id="start-run" class="button primary" disabled><span aria-hidden="true">＋</span> 新建运行</button>
+      <button id="stop-run" class="button secondary" disabled>停止运行</button>
+    </section>
+    <div id="app-message" class="message" role="status" aria-live="polite" hidden></div>
+    <div class="workspace-heading"><div><p class="eyebrow">GUANDAN / DECISION LAB</p><h2 id="workspace-title">对局工作台</h2></div><div class="run-meta"><span id="run-mode" class="badge">等待选择</span><span id="run-status" class="badge neutral">无运行</span><span id="log-status" class="muted">记录状态 —</span></div></div>
+    <div id="run-error" class="message warning" role="status" hidden></div>
+
+    <section id="table-view" class="workspace-grid" aria-label="对局与决策">
+      <div class="desk-column">
+        <section class="panel table-panel" aria-labelledby="table-heading">
+          <div class="panel-heading"><div><h3 id="table-heading">牌桌</h3><p id="table-subtitle">每个视角，只展示该座位可见的信息</p></div><div class="seat-control"><label for="session-select">观察座位</label><select id="session-select" disabled><option>暂无座位</option></select></div></div>
+          <div class="table-stats"><div><span>当前小局</span><strong id="round-value">—</strong></div><div><span>当前级牌</span><strong id="level-value">—</strong></div><div><span>对局阶段</span><strong id="stage-value">等待运行</strong></div><div><span>决策阶段</span><strong id="decision-stage">—</strong></div></div>
+          <div class="game-table" id="game-table">
+            <div class="felt-ring" aria-hidden="true"></div>
+            <div id="seat-north" class="player player-north"></div>
+            <div id="seat-west" class="player player-west"></div>
+            <div id="seat-east" class="player player-east"></div>
+            <div class="table-center"><span class="table-wordmark" aria-hidden="true">掼 蛋</span><p id="leader-label">等待牌桌信息</p><div id="leading-cards" class="leading-cards"></div><p id="leading-type" class="table-note">平台公开信息将在这里显示</p></div>
+            <div id="seat-south" class="player player-south"></div>
+          </div>
+          <div class="hand-area"><div class="hand-heading"><h4 id="hand-title">当前座位手牌</h4><span id="hand-count" class="muted">— 张</span></div><div id="self-hand" class="hand-rack"><p class="empty-inline">选择运行和观察座位后查看手牌</p></div></div>
+          <div class="table-footer"><span><i class="live-dot" aria-hidden="true"></i><span id="sync-label">等待同步</span></span><span id="facts-status">其他座位仅显示公开余牌</span></div>
+        </section>
+
+        <section class="panel history-panel" aria-labelledby="history-heading">
+          <div class="panel-heading"><div><h3 id="history-heading">决策记录</h3><p>按请求浏览 · 点击查看决策依据</p></div><button id="refresh-decisions" class="text-button" disabled>刷新记录 ↻</button></div>
+          <div id="history-message" class="inline-message" role="status" hidden></div>
+          <div id="decision-list" class="decision-list"><div class="empty-state compact"><span aria-hidden="true">≋</span><p>暂无决策记录</p><small>选定座位后，记录会按请求顺序显示。</small></div></div>
+          <div class="pagination"><span id="history-count" class="muted">0 条记录</span><button id="more-decisions" class="button small secondary" disabled>加载更多</button><button id="recover-history" class="text-button" hidden>从可用记录继续</button></div>
+        </section>
+      </div>
+      <aside class="panel detail-panel" aria-labelledby="detail-heading"><div class="panel-heading"><div><p class="eyebrow">DECISION INSPECTOR</p><h3 id="detail-heading">决策详情</h3></div><span class="detail-mark" aria-hidden="true">↗</span></div><div id="decision-detail" class="detail-content"><div class="empty-state"><span class="empty-symbol" aria-hidden="true">♧</span><h4>每一次选择，都有迹可循</h4><p>从左侧选择一条决策，查看候选动作、模型理由和服务端确认。</p><small>浏览记录不会触发模型调用或出牌。</small></div></div></aside>
+    </section>
+
+    <section id="reports-view" class="reports-grid" aria-label="已生成复盘" hidden>
+      <aside class="panel report-index"><div class="panel-heading"><div><h3>报告目录</h3><p>读取已经生成的报告</p></div><button id="refresh-reports" class="text-button">刷新 ↻</button></div><div id="report-list" class="report-list"></div></aside>
+      <article class="panel report-panel"><div id="report-body" class="report-content"><div class="empty-state"><span class="empty-symbol" aria-hidden="true">▤</span><h3>让决策回到当时的情境</h3><p>选择已有报告，分别查看当时事实、事后结果、解释和建议。</p><small>此页面只读取报告，不生成新复盘。</small></div></div></article>
+      <aside id="report-evidence-panel" class="panel detail-panel" hidden><div class="panel-heading"><div><p class="eyebrow">ORIGINAL EVIDENCE</p><h3>原决策证据</h3></div><button id="close-evidence" class="text-button">关闭</button></div><div id="report-decision-detail" class="detail-content"></div></aside>
+    </section>
+    <footer class="page-footer"><span>掼蛋 Agent · 课程项目</span><span>事实、模型判断与实际执行，分别呈现。</span></footer>
+  </main>
+</body>
+</html>

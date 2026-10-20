@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0",
+  "example_kind": "synthetic_contract_example_not_executed",
+  "description": "合成跟牌请求；重复PASS仅用于检验精确去重，不声称此处为真实服务器输出。分数用于接口展示，不是冻结的规则实现。",
+  "decision_input": {
+    "context": {
+      "state": {
+        "binding": {
+          "run_id": "00000000-0000-4000-8000-000000000001",
+          "match_id": "00000000-0000-4000-8000-000000000002",
+          "round_id": 1,
+          "session_id": "00000000-0000-4000-8000-000000000003",
+          "seat": 0,
+          "connection_epoch": 1,
+          "request_id": "00000000-0000-4000-8000-000000000003:q7",
+          "state_version": 12
+        },
+        "stage": "play",
+        "self_hand": [
+          "S9",
+          "D4"
+        ],
+        "level_rank": "2",
+        "remaining_counts": [
+          2,
+          5,
+          4,
+          6
+        ],
+        "team_ranks": [
+          "2",
+          "2"
+        ],
+        "turn_seat": 0,
+        "leader_seat": 1,
+        "leading_action": [
+          "Single",
+          "8",
+          [
+            "D8"
+          ]
+        ],
+        "finished_order": [],
+        "history": [
+          {
+            "event_id": "00000000-0000-4000-8000-000000000001:e10",
+            "seat": 1,
+            "action": [
+              "Single",
+              "8",
+              [
+                "D8"
+              ]
+            ]
+          }
+        ],
+        "history_complete": false,
+        "history_omitted": 1,
+        "facts_status": "trusted"
+      },
+      "legal": {
+        "binding": {
+          "run_id": "00000000-0000-4000-8000-000000000001",
+          "match_id": "00000000-0000-4000-8000-000000000002",
+          "round_id": 1,
+          "session_id": "00000000-0000-4000-8000-000000000003",
+          "seat": 0,
+          "connection_epoch": 1,
+          "request_id": "00000000-0000-4000-8000-000000000003:q7",
+          "state_version": 12
+        },
+        "raw_count": 3,
+        "actions": [
+          {
+            "action_id": "L0000",
+            "source_indices": [
+              0
+            ],
+            "wire_action": [
+              "Single",
+              "9",
+              [
+                "S9"
+              ]
+            ]
+          },
+          {
+            "action_id": "L0001",
+            "source_indices": [
+              1,
+              2
+            ],
+            "wire_action": [
+              "PASS",
+              "PASS",
+              "PASS"
+            ]
+          }
+        ]
+      },
+      "received_at": "2026-10-19T02:00:00Z",
+      "fallback_action_id": "L0000",
+      "policy": "V1",
+      "platform_context": null
+    },
+    "candidates": {
+      "binding": {
+        "run_id": "00000000-0000-4000-8000-000000000001",
+        "match_id": "00000000-0000-4000-8000-000000000002",
+        "round_id": 1,
+        "session_id": "00000000-0000-4000-8000-000000000003",
+        "seat": 0,
+        "connection_epoch": 1,
+        "request_id": "00000000-0000-4000-8000-000000000003:q7",
+        "state_version": 12
+      },
+      "candidate_snapshot_id": "00000000-0000-4000-8000-000000000003:q7:c1",
+      "candidates": [
+        {
+          "action_id": "L0000",
+          "features": {
+            "played_count": 1,
+            "remaining_count": 1,
+            "estimated_turns": 1,
+            "single_count": 1,
+            "split_cost": 0.0,
+            "is_bomb": false,
+            "finishes_hand": false,
+            "beats_leader": true,
+            "rule_score": 10.0
+          },
+          "keep_reasons": [
+            "top_ranked"
+          ]
+        },
+        {
+          "action_id": "L0001",
+          "features": {
+            "played_count": 0,
+            "remaining_count": 2,
+            "estimated_turns": 2,
+            "single_count": 2,
+            "split_cost": 0.0,
+            "is_bomb": false,
+            "finishes_hand": false,
+            "beats_leader": false,
+            "rule_score": 0.0
+          },
+          "keep_reasons": [
+            "legal_pass"
+          ]
+        }
+      ],
+      "rule_action_id": "L0000",
+      "tool_status": "ok",
+      "degradation_codes": []
+    }
+  },
+  "scripted_model_reply": {
+    "action_id": "L0000",
+    "reason": "先打出单张9，剩一张4。"
+  },
+  "expected_proposal": {
+    "binding": {
+      "run_id": "00000000-0000-4000-8000-000000000001",
+      "match_id": "00000000-0000-4000-8000-000000000002",
+      "round_id": 1,
+      "session_id": "00000000-0000-4000-8000-000000000003",
+      "seat": 0,
+      "connection_epoch": 1,
+      "request_id": "00000000-0000-4000-8000-000000000003:q7",
+      "state_version": 12
+    },
+    "candidate_snapshot_id": "00000000-0000-4000-8000-000000000003:q7:c1",
+    "action_id": "L0000",
+    "source": "main",
+    "reason": "先打出单张9，剩一张4。",
+    "cause_code": null,
+    "review": null
+  },
+  "expected_wire_message": {
+    "type": "PLAY",
+    "data": {
+      "roomId": 1,
+      "player": 0,
+      "act": [
+        "Single",
+        "9",
+        [
+          "S9"
+        ]
+      ]
+    }
+  },
+  "scripted_confirmation": {
+    "type": "notify",
+    "stage": "play",
+    "curPos": 0,
+    "curAction": [
+      "Single",
+      "9",
+      [
+        "S9"
+      ]
+    ],
+    "greaterPos": 1,
+    "greaterAction": [
+      "Single",
+      "8",
+      [
+        "D8"
+      ]
+    ]
+  },
+  "expectations": {
+    "calls_started": 1,
+    "transport_requests": 0,
+    "transport_note": "ScriptedModel没有HTTP；真实适配器成功路径应为1，但此文件未执行它。",
+    "raw_count": 3,
+    "unique_legal_count": 2,
+    "source": "main",
+    "self_hand_after_confirm": [
+      "D4"
+    ],
+    "confirmation_status": "confirmed"
+  }
+}

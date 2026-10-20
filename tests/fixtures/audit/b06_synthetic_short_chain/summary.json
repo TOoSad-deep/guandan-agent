@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "run_id": "a19d5ab7-1cd7-4763-9360-c97188e829c0",
+  "config_id": "4ece6df5db57eaa5297cd10019bb4a5348ca34780b1c9fc83efab98fbbb28766",
+  "closed": true,
+  "log_complete": true,
+  "last_persisted_seq": 32,
+  "pending_call_ids": [],
+  "unconfirmed_submission_ids": [],
+  "error": null
+}

@@ -1,0 +1,818 @@
+{
+  "batch": "B10",
+  "tested_seat": 0,
+  "sample_size_per_version": 1,
+  "paired_verified": false,
+  "created_at_basis": "frozen plan timestamp for reproducible offline output",
+  "evaluation_recomputed_identically": true,
+  "versions": [
+    {
+      "version": "V0",
+      "run_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7",
+      "config_id": "5cd055043d31cfd83f417bebe529d6eb006d97b8ce0512922e7acac057d3ec1c",
+      "status": "completed",
+      "log_complete": true,
+      "match_counts": {
+        "started": 1,
+        "settled": 1,
+        "win": 1,
+        "loss": 0,
+        "draw": 0,
+        "interrupted": 0,
+        "pending": 0,
+        "log_incomplete_count": 0,
+        "settlement_conflict_count": 0,
+        "unverified_settlement_count": 0,
+        "sample_unit": "match",
+        "units": [
+          {
+            "run_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7",
+            "match_id": "3356ae08-9f8f-4e19-9a52-9a5bbfabf181",
+            "round_id": null,
+            "evaluation_team": 0,
+            "log_complete": true,
+            "evidence_event_ids": [
+              "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e18738",
+              "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e18745",
+              "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e18752",
+              "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e18759"
+            ],
+            "settlement_conflict": false,
+            "unverified_settlement": false,
+            "platform_result": {
+              "victory": 0,
+              "victoryRank": [
+                "A",
+                "2"
+              ],
+              "victoryNum": [
+                3,
+                5,
+                5,
+                3
+              ],
+              "gameResult": [
+                13,
+                17,
+                1,
+                0
+              ],
+              "gameRound": 1
+            },
+            "status": "settled",
+            "outcome": "win"
+          }
+        ]
+      },
+      "rounds_settled": 17,
+      "whole_table": {
+        "requests": 1372,
+        "submissions": 1372,
+        "confirmed": 1372,
+        "sources": {
+          "rule": 688,
+          "unique": 684
+        }
+      },
+      "tested_seat0": {
+        "requests": 353,
+        "nonunique_requests": 160,
+        "sources": {
+          "rule": 160,
+          "unique": 193
+        },
+        "budget_fallback": 0,
+        "fallback_rate": {
+          "numerator": 0,
+          "denominator": 160,
+          "value": 0.0
+        },
+        "model_adopted": 0,
+        "request_to_first_write": {
+          "n": 353,
+          "p50_ms": 1.282,
+          "p95_ms": 10.128599999999997,
+          "max_ms": 288.846,
+          "quantile_method": "linear interpolation at (n-1)*q"
+        },
+        "requests_with_started_model_to_first_write": {
+          "n": 0,
+          "p50_ms": null,
+          "p95_ms": null,
+          "max_ms": null,
+          "quantile_method": "linear interpolation at (n-1)*q"
+        },
+        "path_examples": {
+          "rule": {
+            "run_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7",
+            "session_id": "bbdcf8f1-275c-42aa-a6f8-9777dd83d434",
+            "request_id": "bbdcf8f1-275c-42aa-a6f8-9777dd83d434:q1",
+            "event_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e30",
+            "feedback_event_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e29",
+            "action_id": "L0074",
+            "status": "confirmed"
+          },
+          "unique": {
+            "run_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7",
+            "session_id": "bbdcf8f1-275c-42aa-a6f8-9777dd83d434",
+            "request_id": "bbdcf8f1-275c-42aa-a6f8-9777dd83d434:q2",
+            "event_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e84",
+            "feedback_event_id": "773cc7f3-a171-4f99-8a84-8199d6ff55a7:e83",
+            "action_id": "L0000",
+            "status": "confirmed"
+          }
+        }
+      },
+      "calls_by_role": {},
+      "model_errors": {},
+      "model_usage": {
+        "online": {
+          "slots_used": {
+            "value": 0,
+            "known_subtotal": 0
+          },
+          "calls_started": {
+            "value": 0,
+            "known_subtotal": 0
+          },
+          "transport_requests": {
+            "value": 0,
+            "known_subtotal": 0,
+            "missing_call_count": 0
+          },
+          "input_tokens": {
+            "value": 0,
+            "known_subtotal": 0,
+            "missing_call_count": 0
+          },
+          "output_tokens": {
+            "value": 0,
+            "known_subtotal": 0,
+            "missing_call_count": 0
+          },
+          "total_tokens": {
+            "value": 0,
+            "known_subtotal": 0,
+            "missing_call_count": 0
+          },
+          "cost_amount": {
+            "value": 0,
+            "known_subtotal": 0,
+            "missing_call_count": 0
+          },
+          "currency": null,
+          "cost_bases": [],
+          "known_cost_by_currency": {},
+          "cost_metadata_missing_call_count": 0,
+          "inventory_complete": true,
+          "unidentified_started_calls": 0,
+          "pending_call_count": 0
+        },
+        "offline": {
+          "included": false,
+          "reason": "Offline review usage remains in its separate report/task record"
+        }
+      },
+      "latency": {
+        "unit": "ms",
+        "quantile_method": "linear interpolation at (n-1)*q",
+        "request_to_first_write": {
+          "n": 1372,
+          "p50": 1.3054999999999999,
+          "p95": 9.148750000000001,
+          "max": 288.846,
+          "missing_count": 0
+        },
+        "decision_to_acceptance": {
+          "n": 1372,
+          "p50": 1.161,
+          "p95": 9.0127,
+          "max": 288.695,
+          "missing_count": 0
+        },
+        "model": {
+          "n": 0,
+          "p50": null,
+          "p95": null,
+          "max": null,
+          "missing_count": 0
+        },
+        "tools": {
+          "n": 0,
+          "p50": null,
+          "p95": null,
+          "max": null,
+          "missing_count": 688
+        },
+        "requests_without_write": 0,
+        "metrics_complete": true,
+        "clock_basis": "recorded UTC request receipt / first write; model and tool elapsed_ms when recorded",
+        "boundary": "Observed samples only; log gaps omit unknown events and small-sample quantiles are not time-limit guarantees"
+      },
+      "quality": {
+        "fallback_rate": {
+          "numerator": 0,
+          "denominator": 688,
+          "value": 0.0
+        },
+        "nonunique_without_adoption_count": 0,
+        "main_invalid_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "main_content_basis": "valid decision or MODEL_SCHEMA/MODEL_ACTION_UNKNOWN; transport errors excluded",
+        "review_start_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "review_calls_started": 0,
+        "review_success_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "review_change_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "repair_count": 0,
+        "repair_success_count": 0,
+        "unconfirmed_submission_count": 0,
+        "over_budget_request_count": 0,
+        "duplicate_submission_request_count": 0,
+        "illegal_submission_rate": {
+          "numerator": 0,
+          "denominator": 1372,
+          "value": 0.0
+        },
+        "submission_legality_missing_count": 0,
+        "model_timeout_count": 0,
+        "submission_deadline_unwritten_count": 0,
+        "budget_degraded_request_count": 0,
+        "recording_gap_run_count": 0,
+        "invalid_evidence_count": 0,
+        "metrics_complete": true,
+        "denominator_basis": "trusted request_opened includes local fallback construction and candidate preparation; adopted ExecutionRecord source is authoritative"
+      },
+      "tool_failure_count": 0,
+      "tool_failure_codes": {}
+    },
+    {
+      "version": "V1",
+      "run_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f",
+      "config_id": "b0cc2c5f7b07f1e8d1c21cf9e0a11fb997ee2c346eac9b2a3779f2184316621e",
+      "status": "completed",
+      "log_complete": true,
+      "match_counts": {
+        "started": 1,
+        "settled": 1,
+        "win": 0,
+        "loss": 1,
+        "draw": 0,
+        "interrupted": 0,
+        "pending": 0,
+        "log_incomplete_count": 0,
+        "settlement_conflict_count": 0,
+        "unverified_settlement_count": 0,
+        "sample_unit": "match",
+        "units": [
+          {
+            "run_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f",
+            "match_id": "d3f2bd8e-db36-45cb-bb22-13aa81e95bf6",
+            "round_id": null,
+            "evaluation_team": 0,
+            "log_complete": true,
+            "evidence_event_ids": [
+              "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e11275",
+              "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e11282",
+              "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e11291",
+              "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e11297"
+            ],
+            "settlement_conflict": false,
+            "unverified_settlement": false,
+            "platform_result": {
+              "victory": 1,
+              "victoryRank": [
+                "J",
+                "A"
+              ],
+              "victoryNum": [
+                3,
+                2,
+                2,
+                3
+              ],
+              "gameResult": [
+                9,
+                15,
+                0,
+                1
+              ],
+              "gameRound": 1
+            },
+            "status": "settled",
+            "outcome": "loss"
+          }
+        ]
+      },
+      "rounds_settled": 11,
+      "whole_table": {
+        "requests": 816,
+        "submissions": 816,
+        "confirmed": 816,
+        "sources": {
+          "main": 20,
+          "rule": 316,
+          "unique": 367,
+          "fallback": 113
+        }
+      },
+      "tested_seat0": {
+        "requests": 209,
+        "nonunique_requests": 133,
+        "sources": {
+          "main": 20,
+          "unique": 76,
+          "fallback": 113
+        },
+        "budget_fallback": 113,
+        "fallback_rate": {
+          "numerator": 113,
+          "denominator": 133,
+          "value": 0.849624060150376
+        },
+        "model_adopted": 20,
+        "request_to_first_write": {
+          "n": 209,
+          "p50_ms": 3.921,
+          "p95_ms": 1219.9155999999991,
+          "max_ms": 1965.1080000000002,
+          "quantile_method": "linear interpolation at (n-1)*q"
+        },
+        "requests_with_started_model_to_first_write": {
+          "n": 20,
+          "p50_ms": 1283.8719999999998,
+          "p95_ms": 1898.9633000000001,
+          "max_ms": 1965.1080000000002,
+          "quantile_method": "linear interpolation at (n-1)*q"
+        },
+        "path_examples": {
+          "main": {
+            "run_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f",
+            "session_id": "22dfcae9-618b-4448-92a0-d9688a7cdb98",
+            "request_id": "22dfcae9-618b-4448-92a0-d9688a7cdb98:q1",
+            "event_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e34",
+            "feedback_event_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e33",
+            "action_id": "L0850",
+            "status": "confirmed"
+          },
+          "unique": {
+            "run_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f",
+            "session_id": "22dfcae9-618b-4448-92a0-d9688a7cdb98",
+            "request_id": "22dfcae9-618b-4448-92a0-d9688a7cdb98:q4",
+            "event_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e205",
+            "feedback_event_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e204",
+            "action_id": "L0000",
+            "status": "confirmed"
+          },
+          "fallback": {
+            "run_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f",
+            "session_id": "22dfcae9-618b-4448-92a0-d9688a7cdb98",
+            "request_id": "22dfcae9-618b-4448-92a0-d9688a7cdb98:q45",
+            "event_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e2735",
+            "feedback_event_id": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f:e2734",
+            "action_id": "L0000",
+            "status": "confirmed"
+          }
+        }
+      },
+      "calls_by_role": {
+        "main": 20
+      },
+      "model_errors": {},
+      "model_usage": {
+        "online": {
+          "slots_used": {
+            "value": 20,
+            "known_subtotal": 20
+          },
+          "calls_started": {
+            "value": 20,
+            "known_subtotal": 20
+          },
+          "transport_requests": {
+            "value": 20,
+            "known_subtotal": 20,
+            "missing_call_count": 0
+          },
+          "input_tokens": {
+            "value": 89829,
+            "known_subtotal": 89829,
+            "missing_call_count": 0
+          },
+          "output_tokens": {
+            "value": 1004,
+            "known_subtotal": 1004,
+            "missing_call_count": 0
+          },
+          "total_tokens": {
+            "value": 90833,
+            "known_subtotal": 90833,
+            "missing_call_count": 0
+          },
+          "cost_amount": {
+            "value": null,
+            "known_subtotal": 0,
+            "missing_call_count": 20
+          },
+          "currency": null,
+          "cost_bases": [],
+          "known_cost_by_currency": {},
+          "cost_metadata_missing_call_count": 0,
+          "inventory_complete": true,
+          "unidentified_started_calls": 0,
+          "pending_call_count": 0
+        },
+        "offline": {
+          "included": false,
+          "reason": "Offline review usage remains in its separate report/task record"
+        }
+      },
+      "latency": {
+        "unit": "ms",
+        "quantile_method": "linear interpolation at (n-1)*q",
+        "request_to_first_write": {
+          "n": 816,
+          "p50": 1.599,
+          "p95": 21.5385,
+          "max": 1965.1080000000002,
+          "missing_count": 0
+        },
+        "decision_to_acceptance": {
+          "n": 816,
+          "p50": 1.4485000000000001,
+          "p95": 21.38175,
+          "max": 1964.7440000000001,
+          "missing_count": 0
+        },
+        "model": {
+          "n": 20,
+          "p50": 1239.7620620031375,
+          "p95": 1618.8244270902942,
+          "max": 1730.1986670063343,
+          "missing_count": 0
+        },
+        "tools": {
+          "n": 0,
+          "p50": null,
+          "p95": null,
+          "max": null,
+          "missing_count": 449
+        },
+        "requests_without_write": 0,
+        "metrics_complete": true,
+        "clock_basis": "recorded UTC request receipt / first write; model and tool elapsed_ms when recorded",
+        "boundary": "Observed samples only; log gaps omit unknown events and small-sample quantiles are not time-limit guarantees"
+      },
+      "quality": {
+        "fallback_rate": {
+          "numerator": 113,
+          "denominator": 449,
+          "value": 0.2516703786191537
+        },
+        "nonunique_without_adoption_count": 0,
+        "main_invalid_rate": {
+          "numerator": 0,
+          "denominator": 20,
+          "value": 0.0
+        },
+        "main_content_basis": "valid decision or MODEL_SCHEMA/MODEL_ACTION_UNKNOWN; transport errors excluded",
+        "review_start_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "review_calls_started": 0,
+        "review_success_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "review_change_rate": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null
+        },
+        "repair_count": 0,
+        "repair_success_count": 0,
+        "unconfirmed_submission_count": 0,
+        "over_budget_request_count": 0,
+        "duplicate_submission_request_count": 0,
+        "illegal_submission_rate": {
+          "numerator": 0,
+          "denominator": 816,
+          "value": 0.0
+        },
+        "submission_legality_missing_count": 0,
+        "model_timeout_count": 0,
+        "submission_deadline_unwritten_count": 0,
+        "budget_degraded_request_count": 113,
+        "recording_gap_run_count": 0,
+        "invalid_evidence_count": 0,
+        "metrics_complete": true,
+        "denominator_basis": "trusted request_opened includes local fallback construction and candidate preparation; adopted ExecutionRecord source is authoritative"
+      },
+      "tool_failure_count": 0,
+      "tool_failure_codes": {}
+    },
+    {
+      "version": "V2",
+      "run_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28",
+      "config_id": "12960dd79d6d190ce8ab188130dd7b96a8d6b106707e3e2153b1c18519d96176",
+      "status": "completed",
+      "log_complete": true,
+      "match_counts": {
+        "started": 1,
+        "settled": 1,
+        "win": 0,
+        "loss": 1,
+        "draw": 0,
+        "interrupted": 0,
+        "pending": 0,
+        "log_incomplete_count": 0,
+        "settlement_conflict_count": 0,
+        "unverified_settlement_count": 0,
+        "sample_unit": "match",
+        "units": [
+          {
+            "run_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28",
+            "match_id": "04b4a710-f692-4cbb-8ff8-dabb13c8213a",
+            "round_id": null,
+            "evaluation_team": 0,
+            "log_complete": true,
+            "evidence_event_ids": [
+              "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e10940",
+              "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e10949",
+              "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e10956",
+              "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e10963"
+            ],
+            "settlement_conflict": false,
+            "unverified_settlement": false,
+            "platform_result": {
+              "victory": 1,
+              "victoryRank": [
+                "T",
+                "A"
+              ],
+              "victoryNum": [
+                0,
+                3,
+                3,
+                3
+              ],
+              "gameResult": [
+                8,
+                13,
+                0,
+                1
+              ],
+              "gameRound": 1
+            },
+            "status": "settled",
+            "outcome": "loss"
+          }
+        ]
+      },
+      "rounds_settled": 10,
+      "whole_table": {
+        "requests": 795,
+        "submissions": 795,
+        "confirmed": 795,
+        "sources": {
+          "main": 4,
+          "rule": 299,
+          "unique": 372,
+          "review": 8,
+          "fallback": 112
+        }
+      },
+      "tested_seat0": {
+        "requests": 210,
+        "nonunique_requests": 124,
+        "sources": {
+          "main": 4,
+          "unique": 86,
+          "review": 8,
+          "fallback": 112
+        },
+        "budget_fallback": 112,
+        "fallback_rate": {
+          "numerator": 112,
+          "denominator": 124,
+          "value": 0.9032258064516129
+        },
+        "model_adopted": 12,
+        "request_to_first_write": {
+          "n": 210,
+          "p50_ms": 4.0945,
+          "p95_ms": 1138.7995999999937,
+          "max_ms": 2556.321,
+          "quantile_method": "linear interpolation at (n-1)*q"
+        },
+        "requests_with_started_model_to_first_write": {
+          "n": 12,
+          "p50_ms": 2259.4500000000003,
+          "p95_ms": 2529.79395,
+          "max_ms": 2556.321,
+          "quantile_method": "linear interpolation at (n-1)*q"
+        },
+        "path_examples": {
+          "main": {
+            "run_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28",
+            "session_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1",
+            "request_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1:q1",
+            "event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e34",
+            "feedback_event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e33",
+            "action_id": "L0261",
+            "status": "confirmed"
+          },
+          "unique": {
+            "run_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28",
+            "session_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1",
+            "request_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1:q2",
+            "event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e89",
+            "feedback_event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e88",
+            "action_id": "L0000",
+            "status": "confirmed"
+          },
+          "review": {
+            "run_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28",
+            "session_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1",
+            "request_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1:q4",
+            "event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e212",
+            "feedback_event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e211",
+            "action_id": "L0001",
+            "status": "confirmed"
+          },
+          "fallback": {
+            "run_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28",
+            "session_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1",
+            "request_id": "a8d70b0b-ab21-400c-bf14-738a0a0813f1:q22",
+            "event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e1109",
+            "feedback_event_id": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28:e1108",
+            "action_id": "L0000",
+            "status": "confirmed"
+          }
+        }
+      },
+      "calls_by_role": {
+        "main": 12,
+        "review": 8
+      },
+      "model_errors": {},
+      "model_usage": {
+        "online": {
+          "slots_used": {
+            "value": 20,
+            "known_subtotal": 20
+          },
+          "calls_started": {
+            "value": 20,
+            "known_subtotal": 20
+          },
+          "transport_requests": {
+            "value": 20,
+            "known_subtotal": 20,
+            "missing_call_count": 0
+          },
+          "input_tokens": {
+            "value": 72121,
+            "known_subtotal": 72121,
+            "missing_call_count": 0
+          },
+          "output_tokens": {
+            "value": 930,
+            "known_subtotal": 930,
+            "missing_call_count": 0
+          },
+          "total_tokens": {
+            "value": 73051,
+            "known_subtotal": 73051,
+            "missing_call_count": 0
+          },
+          "cost_amount": {
+            "value": null,
+            "known_subtotal": 0,
+            "missing_call_count": 20
+          },
+          "currency": null,
+          "cost_bases": [],
+          "known_cost_by_currency": {},
+          "cost_metadata_missing_call_count": 0,
+          "inventory_complete": true,
+          "unidentified_started_calls": 0,
+          "pending_call_count": 0
+        },
+        "offline": {
+          "included": false,
+          "reason": "Offline review usage remains in its separate report/task record"
+        }
+      },
+      "latency": {
+        "unit": "ms",
+        "quantile_method": "linear interpolation at (n-1)*q",
+        "request_to_first_write": {
+          "n": 795,
+          "p50": 1.571,
+          "p95": 13.641499999999999,
+          "max": 2556.321,
+          "missing_count": 0
+        },
+        "decision_to_acceptance": {
+          "n": 795,
+          "p50": 1.421,
+          "p95": 13.488099999999998,
+          "max": 2555.832,
+          "missing_count": 0
+        },
+        "model": {
+          "n": 20,
+          "p50": 1214.4868959876476,
+          "p95": 1550.304397301807,
+          "max": 2046.4819170010742,
+          "missing_count": 0
+        },
+        "tools": {
+          "n": 0,
+          "p50": null,
+          "p95": null,
+          "max": null,
+          "missing_count": 423
+        },
+        "requests_without_write": 0,
+        "metrics_complete": true,
+        "clock_basis": "recorded UTC request receipt / first write; model and tool elapsed_ms when recorded",
+        "boundary": "Observed samples only; log gaps omit unknown events and small-sample quantiles are not time-limit guarantees"
+      },
+      "quality": {
+        "fallback_rate": {
+          "numerator": 112,
+          "denominator": 423,
+          "value": 0.2647754137115839
+        },
+        "nonunique_without_adoption_count": 0,
+        "main_invalid_rate": {
+          "numerator": 0,
+          "denominator": 12,
+          "value": 0.0
+        },
+        "main_content_basis": "valid decision or MODEL_SCHEMA/MODEL_ACTION_UNKNOWN; transport errors excluded",
+        "review_start_rate": {
+          "numerator": 8,
+          "denominator": 9,
+          "value": 0.8888888888888888
+        },
+        "review_calls_started": 8,
+        "review_success_rate": {
+          "numerator": 8,
+          "denominator": 8,
+          "value": 1.0
+        },
+        "review_change_rate": {
+          "numerator": 0,
+          "denominator": 8,
+          "value": 0.0
+        },
+        "repair_count": 0,
+        "repair_success_count": 0,
+        "unconfirmed_submission_count": 0,
+        "over_budget_request_count": 0,
+        "duplicate_submission_request_count": 0,
+        "illegal_submission_rate": {
+          "numerator": 0,
+          "denominator": 795,
+          "value": 0.0
+        },
+        "submission_legality_missing_count": 0,
+        "model_timeout_count": 0,
+        "submission_deadline_unwritten_count": 0,
+        "budget_degraded_request_count": 112,
+        "recording_gap_run_count": 0,
+        "invalid_evidence_count": 0,
+        "metrics_complete": true,
+        "denominator_basis": "trusted request_opened includes local fallback construction and candidate preparation; adopted ExecutionRecord source is authoritative"
+      },
+      "tool_failure_count": 0,
+      "tool_failure_codes": {}
+    }
+  ],
+  "limits": [
+    "Different random deals; no seat rotation; no causal or win-rate superiority conclusion",
+    "20-call caps describe budget-limited policies, not all-game model play",
+    "Model text factual correctness and strategic strength are not measured by legality",
+    "Teacher API permission, version and time limit remain unknown"
+  ]
+}

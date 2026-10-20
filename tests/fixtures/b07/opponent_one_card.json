@@ -1,0 +1,112 @@
+{
+  "fixture_kind": "synthetic_fixed_review",
+  "description": "Adapted from phase3 opponent_one_card; synthetic raw protocol frames, not official platform legality evidence.",
+  "source_path": "experiments/phase3/fixtures/model_cases.json",
+  "source_sha256": "058e6985d573219f307031cf96c9a07c61f27aa9381eca8ed32ead62e85c006c",
+  "source_case_id": "opponent_one_card",
+  "beginning": {
+    "type": "notify",
+    "stage": "beginning",
+    "myPos": 0,
+    "handCards": [
+      "S9",
+      "H9",
+      "C9",
+      "D9",
+      "SK",
+      "HA"
+    ],
+    "levelCard": "2"
+  },
+  "request": {
+    "type": "act",
+    "stage": "play",
+    "handCards": [
+      "S9",
+      "H9",
+      "C9",
+      "D9",
+      "SK",
+      "HA"
+    ],
+    "selfRank": "2",
+    "oppoRank": "2",
+    "curRank": "2",
+    "indexRange": 0,
+    "publicInfo": [
+      {
+        "rest": 6
+      },
+      {
+        "rest": 1
+      },
+      {
+        "rest": 8
+      },
+      {
+        "rest": 7
+      }
+    ],
+    "curPos": 1,
+    "curAction": [
+      "Single",
+      "Q",
+      [
+        "CQ"
+      ]
+    ],
+    "greaterPos": 1,
+    "greaterAction": [
+      "Single",
+      "Q",
+      [
+        "CQ"
+      ]
+    ],
+    "actionList": [
+      [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      [
+        "Single",
+        "K",
+        [
+          "SK"
+        ]
+      ],
+      [
+        "Single",
+        "A",
+        [
+          "HA"
+        ]
+      ],
+      [
+        "Bomb",
+        "9",
+        [
+          "S9",
+          "H9",
+          "C9",
+          "D9"
+        ]
+      ]
+    ]
+  },
+  "prior_play": {
+    "type": "notify",
+    "stage": "play",
+    "curPos": 1,
+    "curAction": [
+      "Single",
+      "Q",
+      [
+        "CQ"
+      ]
+    ],
+    "greaterPos": -1,
+    "greaterAction": null
+  }
+}

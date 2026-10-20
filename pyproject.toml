@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "guandan-agent"
+version = "0.1.0"
+description = "Bounded Guandan course Agent with isolated player state"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pydantic==2.14.1",
+    "websockets==15.0.1",
+    "langgraph==1.2.16",
+    "langchain-deepseek==1.1.1",
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
+]
+
+[project.scripts]
+guandan-agent = "guandan_agent.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx==0.28.1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/guandan_agent"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/guandan_agent",
+    "/pyproject.toml",
+    "/README.md",
+    "/configs/local.example.toml",
+    "/uv.lock",
+    "/.python-version",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"

@@ -1,0 +1,21 @@
+{
+  "call_id": "synthetic-main-1",
+  "role": "main",
+  "calls_started": 1,
+  "transport_requests": null,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "cost_basis": null
+  },
+  "decision": null,
+  "error": {
+    "code": "MODEL_TIMEOUT",
+    "component": "model",
+    "safe_message": "The model call did not finish before its deadline.",
+    "related_event_id": null
+  }
+}

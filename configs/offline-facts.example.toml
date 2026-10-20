@@ -1,0 +1,21 @@
+# Current offline factual review. Check mode only by default.
+# Freeze an explicit call budget in a separate experiment config before live use.
+[run]
+policy = "V0"
+seats = [{ seat = 0, user_name = "offline-source", policy = "V0" }]
+split = "development"
+experiment_id = "offline-facts-example"
+
+[model]
+max_output_tokens = 1600
+max_input_bytes = 24576
+max_retries = 0
+
+[batch]
+max_model_calls = 0
+
+[offline]
+max_model_calls = 0
+
+[versions]
+prompt = "b09-offline-v3"

@@ -1,0 +1,39 @@
+{
+  "description": "T11 uses the complete historical prefix through line 144, not disconnected rows or a new live match.",
+  "source": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+  "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887",
+  "anchors": [
+    {
+      "line": 136,
+      "sha256": "9575337985e414c68e4a3f3d3f504586ee6d381cbbc9095137428152209ff00c"
+    },
+    {
+      "line": 138,
+      "sha256": "78ed7d7069ff3a69727a263520f30a238eef5a87e5f282e771e3561035dd53d3"
+    },
+    {
+      "line": 139,
+      "sha256": "7aca0625be1202a11ac96f7eb9b47befd58b6034de11f4805afb87618053bd4f"
+    },
+    {
+      "line": 140,
+      "sha256": "8a2f7a52a3aee6891cf8c95dc2bd37ac514029fe11da2912b0da861d4d12a6e2"
+    },
+    {
+      "line": 141,
+      "sha256": "a02ac264993c4af3a482d2812d1057a68093b55362886e6e53c77a0e6c500be3"
+    },
+    {
+      "line": 142,
+      "sha256": "04b446e75a1a038d84f7f6f072ecae552e2f228ba246159e21060b1cfce5f594"
+    },
+    {
+      "line": 143,
+      "sha256": "6f46442ec542cfcea0a1382f4af91fae5529c1cbb0a74ed86648ffd2df23ec4c"
+    },
+    {
+      "line": 144,
+      "sha256": "1bfbd9e9fd414376b6faed5ab442f087fd667de8a7b64cf77c53f515892f2b88"
+    }
+  ]
+}

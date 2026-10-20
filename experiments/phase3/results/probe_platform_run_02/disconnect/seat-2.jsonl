@@ -1,0 +1,4 @@
+{"sequence": 6, "elapsed_seconds": 0.010001, "seat": 2, "connection_generation": 1, "direction": "send", "message": {"type": "JOIN_ROOM", "data": {"userId": "phase3-disconnect-d128504d83-2", "roomId": 4, "seatNum": 2}}}
+{"sequence": 7, "elapsed_seconds": 0.010342, "seat": 2, "connection_generation": 1, "direction": "receive", "message": {"code": 200, "data": {"userNum": 2, "roomId": 4}, "type": "JOIN_ROOM"}}
+{"sequence": 14, "elapsed_seconds": 0.011251, "seat": 2, "connection_generation": 1, "direction": "receive", "message": {"code": 200, "data": {"roomId": 4}, "type": "JOIN"}}
+{"sequence": 17, "elapsed_seconds": 1.016887, "seat": 2, "connection_generation": 1, "direction": "receive", "message": {"myPos": 2, "stage": "beginning", "levelCard": "2", "handCards": ["H2", "S2", "C2", "H3", "C3", "D3", "H4", "S4", "D4", "H4", "D5", "H7", "C7", "D7", "S8", "S9", "C9", "C9", "HT", "ST", "DQ", "HK", "SK", "CK", "CA", "DA", "CA"], "type": "notify"}}

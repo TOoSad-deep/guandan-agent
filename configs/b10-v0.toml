@@ -1,0 +1,74 @@
+# B10 final evaluation: one match only; no automatic replenishment.
+[run]
+policy = "V0"
+matches = 1
+evaluation_team = 0
+split = "final"
+experiment_id = "b10-final-20261020"
+seats = [
+  { seat = 0, user_name = "b10-v0-p0", policy = "V0" },
+  { seat = 1, user_name = "b10-v0-p1" },
+  { seat = 2, user_name = "b10-v0-p2" },
+  { seat = 3, user_name = "b10-v0-p3" },
+]
+
+[platform]
+url = "ws://127.0.0.1:18181"
+adapter_version = "openguandan-e92db7f-v1"
+rules_version = "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+mode = "create"
+server_rounds = 1
+
+[decision]
+total_s = 30.0
+submit_reserve_s = 1.0
+confirm_timeout_s = 5.0
+
+[tools]
+total_s = 0.5
+deep_eval_limit = 8
+candidate_target = 12
+candidate_hard_limit = 24
+engine_stop_grace_s = 0.5
+
+[model]
+name = "deepseek-flash"
+timeout_s = 20.0
+max_output_tokens = 384
+max_input_bytes = 24576
+max_retries = 0
+thinking = false
+concurrency = 1
+
+[review]
+# Omit enabled so it follows effective seat policies: V2 true, otherwise false.
+min_remaining_s = 2.0
+
+[batch]
+max_model_calls = 0
+
+[offline]
+max_model_calls = 0
+
+[history]
+max_events = 100
+
+[logs]
+queue_capacity = 4096
+cache_events = 2000
+max_query_limit = 200
+
+[ui]
+poll_ms = 1000
+
+[web]
+host = "127.0.0.1"
+port = 8000
+workers = 1
+reload = false
+
+[versions]
+policy = "b05-rules-v1"
+candidate = "b05-candidates-v1"
+fallback = "b02-cheap-v1"
+prompt = "b09-facts-v3"

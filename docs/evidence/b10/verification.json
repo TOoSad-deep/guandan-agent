@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0",
+  "batch": "B10",
+  "checked_at": "2026-10-20T01:31:25.889646+00:00",
+  "status": {
+    "P22": "accepted",
+    "P23": "accepted",
+    "P24_technical_delivery": "prepared_and_clean_demo_passed",
+    "personal_reports": "templates_only_members_must_complete",
+    "formal_course_submission": "not_submitted_teacher_conditions_unknown"
+  },
+  "production_source_changed": false,
+  "frozen_plan": "artifacts/b10/frozen-plan.json",
+  "final_runs": {
+    "V0": "773cc7f3-a171-4f99-8a84-8199d6ff55a7",
+    "V1": "418d4b8b-6b57-40b3-b320-f7f7f319cc0f",
+    "V2": "a8e0af0c-673d-4c51-bff9-76a0bac1fd28"
+  },
+  "matches": {
+    "started": 3,
+    "completed": 3,
+    "per_version": 1,
+    "rounds": [
+      17,
+      11,
+      10
+    ],
+    "submission_count": 2983,
+    "raw_confirmed_count": 2983,
+    "paired_verified": false,
+    "seat_rotation": false
+  },
+  "online_model": {
+    "slots_used": 40,
+    "calls_started": 40,
+    "transport_requests": 40,
+    "main": 32,
+    "review": 8,
+    "repair": 0,
+    "input_tokens": 161950,
+    "output_tokens": 1934,
+    "total_tokens": 163884,
+    "cost_amount": null,
+    "retry_count": 0,
+    "errors": 0,
+    "timeout_count": 0,
+    "budget_remaining": 0,
+    "thinking": false
+  },
+  "offline_model_calls": 0,
+  "review": {
+    "eligible": 9,
+    "started": 8,
+    "kept": 8,
+    "changed": 0,
+    "confirmed_source_review": 8,
+    "skipped_batch_budget": 1
+  },
+  "tests": {
+    "preflight": 965,
+    "final_full_suite": 1030,
+    "final_log": "artifacts/b10/pytest-final.log",
+    "post_whitelist_package_checks": 26,
+    "package_log": "artifacts/b10/package-tests.log"
+  },
+  "build": {
+    "passed": true,
+    "log": "artifacts/b10/build.log"
+  },
+  "audit": {
+    "V0": {
+      "passed": true,
+      "accepted_live": true,
+      "frozen_config_valid": true
+    },
+    "V1": {
+      "passed": true,
+      "accepted_live": true,
+      "frozen_config_valid": true
+    },
+    "V2": {
+      "passed": true,
+      "accepted_live": true,
+      "frozen_config_valid": true
+    }
+  },
+  "clean_reproduction": {
+    "report": "artifacts/b10/clean-install-verification.json",
+    "new_application_directory": true,
+    "new_venv": true,
+    "python_install_passed": true,
+    "java_rebuilt": true,
+    "dependency_cache_reused": true,
+    "short_demo_s": 3,
+    "confirmed": 335,
+    "model_calls": 0,
+    "status": "interrupted_not_a_match_result"
+  },
+  "source_integrity": {
+    "protected_historical_files": 367,
+    "historical_changed": [],
+    "frozen_files": 54,
+    "frozen_changed": [],
+    "passed": true
+  },
+  "port_18181_released": true,
+  "evaluation_recomputed_identically": true,
+  "review_repair": {
+    "finding": "P2 audit and summary did not require full frozen config match",
+    "fixed": true,
+    "new_model_calls": 0
+  },
+  "delivery": {
+    "archive": "artifacts/b10/delivery/guandan-agent-b10.zip",
+    "hash_record": "artifacts/b10/delivery/package.json",
+    "readme": "docs/交付/运行与交付说明.md",
+    "report": "docs/交付/实验报告.md",
+    "slides": "artifacts/b10/presentation/output/掼蛋Agent-课程答辩.pptx",
+    "published": false
+  },
+  "new_tools_sha256": {
+    "scripts/run_b10_batch.py": "5b46b8e6d18139254ce8bcc162bd2d260983e4644e5adc961d8de8c566b26fb8",
+    "scripts/summarize_b10.py": "ddb62b66d1bc04b4ea9d9eb4b1c62631b9ac904b105a17b4fa447ea6f2a9cfa8",
+    "scripts/verify_b10_run.py": "e3efa0d2c8b883257941f1eeead20f1db653951d82d600b12f3337865ca1cf8a",
+    "scripts/package_b10_delivery.py": "7a1da3d3cc043f7ad82d96f92db2fbaed3d664e73d919522729740106003b986",
+    "tests/unit/test_verify_b10_run.py": "3367013fabe2876479267a0bfedb15e36af930ae2fb975ac0e6fc0fe9104c2aa",
+    "tests/unit/test_b10_package.py": "8c42f470103bd272221b4a58f1ef66a65afe01c0606327dd969bc4ff0bf7887d",
+    "tests/unit/test_b10_summary.py": "8ba28f2d6fd6c88240b0bc9fa3ea17194c50b19e22f33eef2a94213f7750c173"
+  },
+  "limits": [
+    "One unpaired match per version cannot establish strategy strength",
+    "V1/V2 budget fallback 113/133 and112/124 on tested nonunique requests",
+    "1560 tool elapsed_ms values missing; not zero",
+    "Model prose quality not certified by legal action checks",
+    "Teacher API/version/time/submission rules unknown",
+    "Individual contribution reports require member-authored factual content"
+  ]
+}

@@ -1,0 +1,11 @@
+{"elapsed_seconds": 0.002757, "event": "connected", "seat": 0, "generation": 1}
+{"elapsed_seconds": 0.005617, "event": "connected", "seat": 1, "generation": 1}
+{"elapsed_seconds": 0.007351, "event": "connected", "seat": 2, "generation": 1}
+{"elapsed_seconds": 0.008955, "event": "connected", "seat": 3, "generation": 1}
+{"elapsed_seconds": 1.0183, "event": "deliberate_disconnect", "seat": 0, "room_id": 4}
+{"elapsed_seconds": 1.018961, "event": "connection_closed", "seat": 0, "generation": 1}
+{"elapsed_seconds": 1.524178, "event": "connected", "seat": 0, "generation": 2}
+{"elapsed_seconds": 6.526337, "event": "connection_closed", "seat": 0, "generation": 2}
+{"elapsed_seconds": 6.526395, "event": "connection_closed", "seat": 3, "generation": 1}
+{"elapsed_seconds": 6.526415, "event": "connection_closed", "seat": 2, "generation": 1}
+{"elapsed_seconds": 6.526464, "event": "connection_closed", "seat": 1, "generation": 1}

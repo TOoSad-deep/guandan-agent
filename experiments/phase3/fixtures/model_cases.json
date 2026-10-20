@@ -1,0 +1,75 @@
+{
+  "fixture_kind": "synthetic_model_probe",
+  "disclaimer": "人工构造的可见局势与候选，仅验证模型输出和有界流程；不是来自平台的真实合法动作证明，也不验证掼蛋牌型引擎或策略强度。",
+  "cases": [
+    {
+      "id": "ordinary_follow",
+      "request_version": "ordinary-1",
+      "observation": {
+        "phase": "play",
+        "self_seat": 0,
+        "partner_seat": 2,
+        "level_rank": "2",
+        "my_hand": ["S7", "H7", "C9", "DJ"],
+        "remaining_counts": [4, 8, 10, 9],
+        "leading_seat": 3,
+        "leading_action": {"type": "single", "cards": ["C6"]},
+        "public_history": [],
+        "history_complete": false
+      },
+      "candidates": [
+        {"action_id": "pass", "type": "pass", "cards": [], "remaining_count": 4, "breaks_structure": false},
+        {"action_id": "single_7", "type": "single", "cards": ["S7"], "remaining_count": 3, "breaks_structure": true},
+        {"action_id": "single_9", "type": "single", "cards": ["C9"], "remaining_count": 3, "breaks_structure": false},
+        {"action_id": "single_j", "type": "single", "cards": ["DJ"], "remaining_count": 3, "breaks_structure": false}
+      ],
+      "fallback_action_id": "single_9"
+    },
+    {
+      "id": "opponent_one_card",
+      "request_version": "danger-1",
+      "observation": {
+        "phase": "play",
+        "self_seat": 0,
+        "partner_seat": 2,
+        "level_rank": "2",
+        "my_hand": ["S9", "H9", "C9", "D9", "SK", "HA"],
+        "remaining_counts": [6, 1, 8, 7],
+        "leading_seat": 1,
+        "leading_action": {"type": "single", "cards": ["CQ"]},
+        "public_history": [],
+        "history_complete": false
+      },
+      "candidates": [
+        {"action_id": "pass", "type": "pass", "cards": [], "remaining_count": 6, "breaks_structure": false},
+        {"action_id": "single_k", "type": "single", "cards": ["SK"], "remaining_count": 5, "breaks_structure": false},
+        {"action_id": "single_a", "type": "single", "cards": ["HA"], "remaining_count": 5, "breaks_structure": false},
+        {"action_id": "bomb_9", "type": "bomb", "cards": ["S9", "H9", "C9", "D9"], "remaining_count": 2, "breaks_structure": false}
+      ],
+      "fallback_action_id": "single_a"
+    },
+    {
+      "id": "partner_leading",
+      "request_version": "partner-1",
+      "observation": {
+        "phase": "play",
+        "self_seat": 0,
+        "partner_seat": 2,
+        "level_rank": "2",
+        "my_hand": ["S6", "H6", "C9", "D9", "SQ", "HQ"],
+        "remaining_counts": [6, 5, 3, 8],
+        "leading_seat": 2,
+        "leading_action": {"type": "pair", "cards": ["C5", "D5"]},
+        "public_history": [],
+        "history_complete": false
+      },
+      "candidates": [
+        {"action_id": "pass", "type": "pass", "cards": [], "remaining_count": 6, "breaks_structure": false},
+        {"action_id": "pair_6", "type": "pair", "cards": ["S6", "H6"], "remaining_count": 4, "breaks_structure": false},
+        {"action_id": "pair_9", "type": "pair", "cards": ["C9", "D9"], "remaining_count": 4, "breaks_structure": false},
+        {"action_id": "pair_q", "type": "pair", "cards": ["SQ", "HQ"], "remaining_count": 4, "breaks_structure": false}
+      ],
+      "fallback_action_id": "pass"
+    }
+  ]
+}

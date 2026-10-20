@@ -1,0 +1,188 @@
+{
+  "fixture_kind": "historical_frames_in_isolated_module_test_not_contiguous_replay",
+  "source_file": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+  "source_sha256": "f52fa25dedd5d21b4f690c427e5369cd09c7f42fae26226cd71f549beb82c106",
+  "seat": 0,
+  "frames": [
+    {
+      "line": 2,
+      "frame": {
+        "code": 200,
+        "data": {
+          "userNum": 0,
+          "userName": null,
+          "userId": "phase3-normal-cae4c97a02-0",
+          "roomId": 1
+        },
+        "type": "CREATE_ROOM"
+      }
+    },
+    {
+      "line": 13,
+      "frame": {
+        "curPos": 3,
+        "indexRange": 3,
+        "greaterAction": [
+          "ThreePair",
+          "Q",
+          [
+            "H2",
+            "CQ",
+            "DQ",
+            "SK",
+            "CA",
+            "DA"
+          ]
+        ],
+        "publicInfo": [
+          {
+            "rest": 21
+          },
+          {
+            "rest": 21
+          },
+          {
+            "rest": 21
+          },
+          {
+            "rest": 21
+          }
+        ],
+        "actionList": [
+          [
+            "PASS",
+            "PASS",
+            "PASS"
+          ],
+          [
+            "Bomb",
+            "5",
+            [
+              "H5",
+              "S5",
+              "C5",
+              "D5"
+            ]
+          ],
+          [
+            "Bomb",
+            "7",
+            [
+              "H7",
+              "S7",
+              "C7",
+              "S7"
+            ]
+          ],
+          [
+            "Bomb",
+            "T",
+            [
+              "ST",
+              "CT",
+              "DT",
+              "CT"
+            ]
+          ]
+        ],
+        "type": "act",
+        "curAction": [
+          "ThreePair",
+          "Q",
+          [
+            "H2",
+            "CQ",
+            "DQ",
+            "SK",
+            "CA",
+            "DA"
+          ]
+        ],
+        "curRank": "2",
+        "oppoRank": "2",
+        "selfRank": "2",
+        "stage": "play",
+        "greaterPos": 3,
+        "handCards": [
+          "S4",
+          "H5",
+          "S5",
+          "C5",
+          "D5",
+          "S6",
+          "C6",
+          "H7",
+          "S7",
+          "C7",
+          "S7",
+          "C8",
+          "H9",
+          "ST",
+          "CT",
+          "DT",
+          "CT",
+          "HJ",
+          "CQ",
+          "HA",
+          "SB"
+        ]
+      }
+    },
+    {
+      "line": 1754,
+      "frame": {
+        "curRank": "A",
+        "oppoRank": "Q",
+        "indexRange": 1,
+        "selfRank": "A",
+        "stage": "tribute",
+        "actionList": [
+          [
+            "tribute",
+            "tribute",
+            [
+              "SA"
+            ]
+          ],
+          [
+            "tribute",
+            "tribute",
+            [
+              "SA"
+            ]
+          ]
+        ],
+        "handCards": [
+          "H2",
+          "C2",
+          "D2",
+          "C3",
+          "C3",
+          "H4",
+          "S5",
+          "C5",
+          "D5",
+          "C6",
+          "H7",
+          "S7",
+          "D7",
+          "H7",
+          "C8",
+          "D8",
+          "S9",
+          "HJ",
+          "SJ",
+          "CJ",
+          "DJ",
+          "DQ",
+          "DQ",
+          "SK",
+          "CK",
+          "SA",
+          "CA"
+        ],
+        "type": "act"
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Install locked Python dependencies
+        run: uv sync --locked
+      - name: Fetch and verify pinned platform sources
+        run: uv run --locked python -m scripts.fetch_platform
+      - name: Check CLI configuration
+        run: uv run --locked guandan-agent config-check configs/local.example.toml
+      - name: Run offline tests
+        run: uv run --locked pytest
+      - name: Build Python distributions
+        run: uv build

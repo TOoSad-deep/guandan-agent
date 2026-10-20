@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "kind": "review",
+  "run_id": "64cf25c2-e154-468f-87a3-41dc01a1fa8a",
+  "config_id": "c07c86e2e7c1148f03cecf9cef4a69da361c633198219b471abe0643093d235d",
+  "created_at": "2026-10-19T08:00:00Z",
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "total_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "cost_basis": null
+  },
+  "errors": [
+    {
+      "code": "DEMO_REPORT_FAILED",
+      "component": "fixture",
+      "safe_message": "固定失败样例：本条没有可用复盘正文。",
+      "related_event_id": null
+    }
+  ],
+  "report_id": "demo-failed",
+  "status": "failed",
+  "items": []
+}

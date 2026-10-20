@@ -1,0 +1,531 @@
+{
+  "audit_date": "2026-10-19",
+  "mode": "read-only static audit",
+  "snapshot": "OpenGuanDan-Simulator-e92db7f",
+  "scope": [
+    "Q02",
+    "Q04",
+    "Q05",
+    "Q07",
+    "Q08"
+  ],
+  "scope_source": "docs/需求与接口规格.md:292-301",
+  "evidence_labels": {
+    "confirmed static": "直接由当前源码或原始 PDF 确认的结构事实；不是运行通过",
+    "needs runtime": "需要本地运行或教师比赛环境验证；静态推断不作已观察结果"
+  },
+  "activity_boundary": "仅使用文件搜索、带行号阅读、pypdf 文本提取与 JSON 书写；没有启动平台、调用网络、运行第三方游戏代码或改动源码。",
+  "findings": [
+    {
+      "id": "S01",
+      "questions": [
+        "Q02"
+      ],
+      "status": "confirmed static",
+      "title": "WebSocket 常规消息按座位发送本人手牌，公开消息不含其他玩家实时手牌",
+      "conclusion": "beginning 逐用户发送 handCards/myPos；play act 只发当前座位，含本人 handCards、各座位 rest、级牌、最近动作与 actionList。play notify 向所有座位发送已出动作。episodeOver 才广播未出完的各家 restCards，必须作为赛后信息隔离。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 206,
+          "line_end": 217,
+          "description": "发牌后逐用户发送本人手牌"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 687,
+          "line_end": 697,
+          "description": "公开出牌广播"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 865,
+          "line_end": 889,
+          "description": "出牌请求只发送当前玩家；publicInfo 只有 rest"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 1061,
+          "line_end": 1077,
+          "description": "小局结束广播剩余手牌"
+        }
+      ],
+      "impact": "策略可消费该座位的常规消息与此前公开事件；不能把终局披露倒灌为当时已知信息。",
+      "runtime_remaining": "仍需抓包核对当前运行版本和各阶段完整字段，不把静态常规路径当作所有可访问路径的安全保证。"
+    },
+    {
+      "id": "S02",
+      "questions": [
+        "Q02"
+      ],
+      "status": "confirmed static",
+      "title": "Python bridge 的宿主环境持有全局暗牌；消息路由是明确的信息边界",
+      "conclusion": "Table.start 返回四个座位的 beginning 消息；Msg 字段为 seat/body。act 将本人手牌和各家 public_info 写入请求。Table.players、get_hand_card、change_hand_card 可接触四家手牌，不能直接暴露给决策函数。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/types.py",
+          "line_start": 105,
+          "line_end": 105,
+          "description": "Msg = namedtuple('Msg', ('seat', 'body'))"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 410,
+          "line_end": 427,
+          "description": "逐座位 beginning 与全员公开 play 消息"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 468,
+          "line_end": 487,
+          "description": "本人手牌加 public_info 的请求"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/types.py",
+          "line_start": 177,
+          "line_end": 178,
+          "description": "public_info 只有 rest 与 playArea"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 609,
+          "line_end": 645,
+          "description": "全局手牌读取与替换接口"
+        }
+      ],
+      "impact": "适配层先按 Msg.seat 路由，再构建纯可见快照；策略和 LLM 不接 Table、players、deck_data、全局 pending_messages。",
+      "runtime_remaining": "用四个不同初始手牌断言每个策略输入只含本人的手牌，以及公开历史。"
+    },
+    {
+      "id": "S03",
+      "questions": [
+        "Q02",
+        "Q03"
+      ],
+      "status": "confirmed static",
+      "title": "WebSocket 产生合法 actionList，但接收 PLAY 路径未验证其成员关系",
+      "conclusion": "getActionList 生成候选；接收时仅检查 payload.player == curPlayer，将 act 转成 CardInfo 后直接修改手牌。审阅到的路径未比较完整 act 与 actionList，未验证发送 socket 与座位绑定，也未见再次校验所持牌、牌型和能否压上家。PASS 解析为 null，随后作为过牌处理。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 495,
+          "line_end": 511,
+          "description": "检查 player 与当前座位，随后转交 playCard"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/utils/Utils.java",
+          "line_start": 157,
+          "line_end": 181,
+          "description": "解析动作与 PASS，不读取当前手牌"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 655,
+          "line_end": 685,
+          "description": "检查当前 player 后直接清除牌位"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 924,
+          "line_end": 948,
+          "description": "生成合法候选的独立路径"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 953,
+          "line_end": 1018,
+          "description": "跟牌候选生成"
+        }
+      ],
+      "impact": "不能将服务端已列出合法动作等同于服务端会拒绝任意非法输入；客户端必须持有当前 actionList，按完整原始条目提交并自行校验请求归属。",
+      "runtime_remaining": "仅在隔离本地测试局检查非法首出 PASS、过期动作等行为，记录实际接受/拒绝/异常；不能把静态缺少检查写成已经成功提交非法动作。"
+    },
+    {
+      "id": "S04",
+      "questions": [
+        "Q02",
+        "Q03"
+      ],
+      "status": "confirmed static",
+      "title": "贡还牌也未见完整合法集合验证；Python bridge 使用动作索引",
+      "conclusion": "WebSocket handleTribute 直接累加计数并转换 act。payTribute 仅作有限形状/数值检查后交换牌，未见 actionList 成员与 socket 绑定校验。Python play 使用 self.legal_moves[actIndex]，Moves.__getitem__ 直接做 Python 列表索引，因此负索引未显式拒绝。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 415,
+          "line_end": 435,
+          "description": "进贡按输入转换和计数"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 577,
+          "line_end": 607,
+          "description": "还贡有限检查后修改两家手牌"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 212,
+          "line_end": 218,
+          "description": "动作索引选择"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/moves.py",
+          "line_start": 187,
+          "line_end": 196,
+          "description": "列表索引无显式范围检查"
+        }
+      ],
+      "impact": "适配层应明确要求整数索引且 0 <= index < len(actionList)，保留原始合法动作；不能混用 Java WebSocket 的完整 act 与 Python bridge 的 actIndex。",
+      "runtime_remaining": "验证出牌、进贡、还贡的正常与无效输入反馈，不基于源码注释假定校验存在。"
+    },
+    {
+      "id": "S05",
+      "questions": [
+        "Q02",
+        "Q03"
+      ],
+      "status": "confirmed static",
+      "title": "常规 act/notify 消息未携带独立请求编号、小局编号或截止时间",
+      "conclusion": "已检查的出牌、进贡、还贡 act 构造没有 requestId/episodeId/deadline。PLAY 正常反馈是状态广播；错误 seat 会直接 return，顶层异常写 stderr。当前路径没有完整的专用动作 ACK/拒绝协议。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 315,
+          "line_end": 325,
+          "description": "进贡 act"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 553,
+          "line_end": 571,
+          "description": "还贡 act"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 865,
+          "line_end": 889,
+          "description": "出牌 act"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 495,
+          "line_end": 511,
+          "description": "不匹配当前玩家时无响应"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 144,
+          "line_end": 147,
+          "description": "异常写 stderr"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 687,
+          "line_end": 697,
+          "description": "出牌状态广播"
+        }
+      ],
+      "impact": "客户端可建立本地 match/episode/request 序号，但须明确它们不是服务端权威 token；动作确认要联合座位、动作、顺序与后续手牌变化，不盲目重发。",
+      "runtime_remaining": "核对通知顺序、动作归一化及过期重放行为，以运行证据定义接受判据。"
+    },
+    {
+      "id": "S06",
+      "questions": [
+        "Q04"
+      ],
+      "status": "confirmed static",
+      "title": "没有恢复原局状态的协议；断线清理存在会话引用相等疑点",
+      "conclusion": "Netty 每次处理消息和 channelInactive 都创建新的 NettyWebSocketSession；handleWsClose 用 user.getWs() == ws 查找用户。该比较不能匹配不同 wrapper 对象。JOIN_ROOM 只接收未满房间，addUser 对已占座位报错，未见恢复 token 或状态重放入口。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/socket/NettyWebSocketServer.java",
+          "line_start": 127,
+          "line_end": 145,
+          "description": "普通消息及断线各新建会话 wrapper"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 522,
+          "line_end": 545,
+          "description": "断线清理以引用 == 匹配"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 276,
+          "line_end": 280,
+          "description": "只允许未满房间加入"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 1255,
+          "line_end": 1288,
+          "description": "已占座位拒绝；新用户创建空手牌对象"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/socket/NettyWebSocketSession.java",
+          "line_start": 14,
+          "line_end": 24,
+          "description": "wrapper 构造"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/socket/NettyWebSocketSession.java",
+          "line_start": 43,
+          "line_end": 60,
+          "description": "提供 channel ID，但未用于该引用比较"
+        }
+      ],
+      "impact": "静态预期断线座位可能残留；即便清理成功，重新加入也不能推定续局。现阶段应把断线记为中断。",
+      "runtime_remaining": "断线后尝试同 userId/seatNum 加入，观察座位是否残留、是否重发本人手牌与合法动作、能否继续同一局。"
+    },
+    {
+      "id": "S07",
+      "questions": [
+        "Q05"
+      ],
+      "status": "confirmed static",
+      "title": "当前源码未实现可识别的每步决策时限",
+      "conclusion": "WebSocket 代码中的 Timer 是四人入座后延迟 1000 ms 开局。配置只读取端口、clusterMode、workerCount；未找到每步 deadline、timeout/托管/超时判负计时路径。Netty 的 HTTP/WebSocket 握手不是出牌计时器。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 318,
+          "line_end": 325,
+          "description": "一秒开局延迟"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/config/AppConfig.java",
+          "line_start": 35,
+          "line_end": 50,
+          "description": "命令行/环境变量配置"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/config/AppConfig.java",
+          "line_start": 77,
+          "line_end": 99,
+          "description": "有效配置解析"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/socket/NettyWebSocketServer.java",
+          "line_start": 54,
+          "line_end": 62,
+          "description": "网络 pipeline 与 keepalive"
+        }
+      ],
+      "search_scope": "对 guandan-websocket/src 与 python-bridge/engine 搜索 timeout/Timeout/time_limit/deadline/IdleState/setSoTimeout/Timer/schedule；没有找到每步期限实现。",
+      "impact": "不能据此宣称课程比赛无限时；教师指定环境可能有外层超时。应用自身应设本地预算并明确它是工程配置。",
+      "runtime_remaining": "不出牌延迟探针只能说明观察窗口内行为；正式时间预算仍需课程规则。所选模型耗时本审计未测。"
+    },
+    {
+      "id": "S08",
+      "questions": [
+        "Q05"
+      ],
+      "status": "confirmed static",
+      "title": "Python Java 动作桥接本身没有调用超时",
+      "conclusion": "oneshot subprocess.run 未传 timeout；worker 模式阻塞读取 stdout.readline。请求 id 只用于 Python 与 Java 动作引擎匹配，不是比赛出牌请求 id。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/moves.py",
+          "line_start": 80,
+          "line_end": 94,
+          "description": "oneshot 无 timeout"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/moves.py",
+          "line_start": 96,
+          "line_end": 120,
+          "description": "worker id 与阻塞 readline"
+        }
+      ],
+      "impact": "若将动作引擎用于在线工具，调用卡住也会消耗决策预算，需要外围限时与失败处理；当前源码未提供这项保证。",
+      "runtime_remaining": "单独测工具耗时、失败和挂起场景，不把模型 API 超时替代工具预算。"
+    },
+    {
+      "id": "S09",
+      "questions": [
+        "Q07"
+      ],
+      "status": "confirmed static",
+      "title": "Java WebSocket 支持显式座位，但未提供 seed 或固定发牌请求字段",
+      "conclusion": "CREATE_ROOM 读取 round/userId/userName/seatNum；Room.dealtCards 直接 Collections.shuffle(cards)，没有注入 Random/seed。GET_ACTION 使用调用方传入的手牌构建临时 User，仅计算动作，不设置房间真实手牌。首局默认 curPlayer=0、levelCard=0。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/GameServer.java",
+          "line_start": 173,
+          "line_end": 201,
+          "description": "创建房间字段"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 145,
+          "line_end": 158,
+          "description": "首局先手与级牌初始化"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 170,
+          "line_end": 194,
+          "description": "无 seed 的 shuffle 与发牌"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 1200,
+          "line_end": 1252,
+          "description": "GET_ACTION 是临时计算，不改房间手牌"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/game/game/Room.java",
+          "line_start": 1255,
+          "line_end": 1271,
+          "description": "显式 seatNum"
+        }
+      ],
+      "impact": "可固定座位不等于可固定牌局。WebSocket 评测先保存实际初始四家手牌、级牌与先手；未改适配器前不声称严格同牌成对。",
+      "runtime_remaining": "不同创建请求字段是否被忽略、首局实际级牌及座位分配应由探针确认；指定手牌需另行适配而非假定公开接口存在。"
+    },
+    {
+      "id": "S10",
+      "questions": [
+        "Q07"
+      ],
+      "status": "confirmed static",
+      "title": "Python bridge 提供固定首局牌堆和手牌替换入口，但整场复现有缺口",
+      "conclusion": "Table 构造接受 deck_data（长度108）和 first_player；deal 由 deck 尾部按每家27张分配。change_hand_card 可替换四家手牌后重算候选。没有显式 seed 参数，随机洗牌使用 Python 全局 random。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 20,
+          "line_end": 52,
+          "description": "deck_data/first_player 构造参数"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 70,
+          "line_end": 97,
+          "description": "全局 shuffle 与倒序分发"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 110,
+          "line_end": 120,
+          "description": "指定牌堆/先手分支"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 612,
+          "line_end": 645,
+          "description": "全局手牌替换与候选重算"
+        }
+      ],
+      "caveat": "deck_data 非空分支不初始化 __cards；下一小局 enter_tribute_stage 又调用 reshuffle，其基础牌组可能为空。因此固定第一局入口存在，不代表多小局重放可用。外部 random.seed 也是宿主控制而非独立实例 seed 接口。",
+      "caveat_evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 21,
+          "line_end": 52,
+          "description": "仅无 deck_data 时建立 __cards"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 147,
+          "line_end": 157,
+          "description": "下一局重新洗牌"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan/tools/python-bridge/engine/table.py",
+          "line_start": 70,
+          "line_end": 74,
+          "description": "从 __cards 复制洗牌"
+        }
+      ],
+      "impact": "先仅验证重复首局并核对实际分牌；完整成对评测需要保存/重放每局牌序与先手，检查后续洗牌和随机流隔离。",
+      "runtime_remaining": "固定 deck 重建两次比较四手牌、级牌、先手；再跨一局测试，确认是否空牌堆；本审计未运行。"
+    },
+    {
+      "id": "S11",
+      "questions": [
+        "Q08"
+      ],
+      "status": "confirmed static",
+      "title": "本次 Java 源码快照不包含可复用牌桌前端或普通 HTTP 页面服务",
+      "conclusion": "入口仅启动 NettyWebSocketServer；pipeline 为 HTTP 解码/聚合、WebSocket 握手和帧处理，没有静态文件路由。整份源码目录的常见前端源码与图像后缀检索为空，README 将项目描述为动作引擎与 WebSocket 服务。",
+      "evidence": [
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/README.md",
+          "line_start": 3,
+          "line_end": 6,
+          "description": "两个子项目定位"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/GuandanServer.java",
+          "line_start": 27,
+          "line_end": 39,
+          "description": "仅启动 WebSocket"
+        },
+        {
+          "path": "research/sources/OpenGuanDan-Simulator-e92db7f/guandan-websocket/src/main/java/com/guandan/socket/NettyWebSocketServer.java",
+          "line_start": 54,
+          "line_end": 64,
+          "description": "只有 WebSocket pipeline 与一个端口"
+        }
+      ],
+      "inventory_search": "rg --files --hidden research/sources/OpenGuanDan-Simulator-e92db7f | rg '\\.(html|htm|css|js|jsx|ts|tsx|vue|svelte|png|jpg|jpeg|svg|woff2?)$' 返回无匹配。",
+      "impact": "不能承诺启动此 JAR 即有 3000 端口牌桌。原 OpenGuanDan 原生发布包、项目网站演示和这个源码仓库应分别识别。",
+      "runtime_remaining": "本地 HTTP/WebSocket 探针检查实际响应；若要复用原生发布包界面需另验，且现有牌桌是否满足模型过程与历史日志展示仍未知。"
+    }
+  ],
+  "assignment_pdf": {
+    "path": "/Users/douwen/Downloads/2-题目.pdf",
+    "method": "使用 bundled Python 的 pypdf 读取全部4页；仅核查文本，不评价版式。",
+    "status": "confirmed static",
+    "pages_read": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "page_1_findings": [
+      "语言不限；写明几乎所有题目强制要求有界面，并要求游戏逻辑与渲染分开。",
+      "可以适当参考网上源码，但不推荐直接使用，鼓励自行设计；需提交组源代码/必要数据、组答辩PPT、个人分工报告。"
+    ],
+    "page_4_findings": [
+      "掼蛋题要求根据指定 OpenGuanDan 平台及 AI 示例设计实现算法，与同学和既有 AI PK，统计结果形成报告。",
+      "列出手牌分析组牌、牌理、末局搜索、记牌与预测作为可选分工方向。"
+    ],
+    "explicit_external_api_permission": "未提及远程 LLM API、外部网络、API 费用或调用数量许可；这是未确定，不能从未禁止推导获准参赛。",
+    "explicit_step_time_limit": "未写每步秒数、计时起点、超时托管/判负、断线恢复规则。",
+    "ui_reuse_requirement": "没有明确说明掼蛋是否必须自建界面、可否仅使用平台既有界面；首页通用界面要求与具体演示验收仍需教师澄清。",
+    "questions": [
+      "Q01",
+      "Q05",
+      "Q08"
+    ]
+  },
+  "remaining_checks": [
+    {
+      "question": "Q02",
+      "status": "needs runtime",
+      "check": "记录真实 play/tribute/back/notify 与终局消息，核对私有信息路由、级牌、动作回显和请求归属。"
+    },
+    {
+      "question": "Q04",
+      "status": "needs runtime",
+      "check": "断线后同座位加入及权威状态恢复；注意 session wrapper 引用比较疑点。"
+    },
+    {
+      "question": "Q05",
+      "status": "needs runtime",
+      "check": "延迟观察、工具及模型耗时；正式参赛期限另需课程规则，不可由短期未超时推断无限期。"
+    },
+    {
+      "question": "Q07",
+      "status": "needs runtime",
+      "check": "固定 deck 的重复首局与跨局测试；Java 未暴露同等固定牌堆 API。"
+    },
+    {
+      "question": "Q08",
+      "status": "needs runtime",
+      "check": "实际 HTTP 页面/牌桌是否存在及界面是否足够展示模型决策与历史记录。"
+    }
+  ]
+}

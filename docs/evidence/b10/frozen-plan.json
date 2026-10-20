@@ -1,0 +1,372 @@
+{
+  "schema_version": "1.0",
+  "batch": "B10",
+  "frozen_at": "2026-10-20T01:20:17.375253+00:00",
+  "max_matches": 3,
+  "max_model_calls": 40,
+  "max_runtime_s_per_match": 1200,
+  "tested_seat": 0,
+  "evaluation_team": 0,
+  "paired_verified": false,
+  "deal_group_id": null,
+  "no_retries_or_replenishment": true,
+  "model_profile": "production thinking disabled, b09-facts-v3; High24 is separate",
+  "teacher_conditions": {
+    "platform_version": "unknown",
+    "external_api_permission": "unknown",
+    "turn_time_limit": "unknown",
+    "submission_format": "unknown"
+  },
+  "configs": {
+    "V0": {
+      "path": "configs/b10-v0.toml",
+      "config_id": "5cd055043d31cfd83f417bebe529d6eb006d97b8ce0512922e7acac057d3ec1c",
+      "config": {
+        "run": {
+          "policy": "V0",
+          "seats": [
+            {
+              "seat": 0,
+              "user_name": "b10-v0-p0",
+              "policy": "V0"
+            },
+            {
+              "seat": 1,
+              "user_name": "b10-v0-p1",
+              "policy": "V0"
+            },
+            {
+              "seat": 2,
+              "user_name": "b10-v0-p2",
+              "policy": "V0"
+            },
+            {
+              "seat": 3,
+              "user_name": "b10-v0-p3",
+              "policy": "V0"
+            }
+          ],
+          "matches": 1,
+          "evaluation_team": 0,
+          "split": "final",
+          "experiment_id": "b10-final-20261020"
+        },
+        "platform": {
+          "url": "ws://127.0.0.1:18181",
+          "adapter_version": "openguandan-e92db7f-v1",
+          "rules_version": "e92db7fa9d915fb318b3be78703d5ccd4a09c887",
+          "mode": "create",
+          "room_id": null,
+          "server_rounds": 1
+        },
+        "decision": {
+          "total_s": 30.0,
+          "submit_reserve_s": 1.0,
+          "confirm_timeout_s": 5.0
+        },
+        "tools": {
+          "total_s": 0.5,
+          "deep_eval_limit": 8,
+          "candidate_target": 12,
+          "candidate_hard_limit": 24,
+          "engine_stop_grace_s": 0.5
+        },
+        "model": {
+          "name": "deepseek-flash",
+          "timeout_s": 20.0,
+          "max_output_tokens": 384,
+          "max_input_bytes": 24576,
+          "max_retries": 0,
+          "thinking": false,
+          "concurrency": 1
+        },
+        "review": {
+          "enabled": false,
+          "min_remaining_s": 2.0,
+          "split_cost_threshold": null
+        },
+        "batch": {
+          "max_model_calls": 0
+        },
+        "offline": {
+          "max_model_calls": 0
+        },
+        "history": {
+          "max_events": 100
+        },
+        "logs": {
+          "queue_capacity": 4096,
+          "cache_events": 2000,
+          "max_query_limit": 200
+        },
+        "ui": {
+          "poll_ms": 1000
+        },
+        "web": {
+          "host": "127.0.0.1",
+          "port": 8000,
+          "workers": 1,
+          "reload": false
+        },
+        "versions": {
+          "policy": "b05-rules-v1",
+          "candidate": "b05-candidates-v1",
+          "fallback": "b02-cheap-v1",
+          "prompt": "b09-facts-v3"
+        }
+      }
+    },
+    "V1": {
+      "path": "configs/b10-v1.toml",
+      "config_id": "b0cc2c5f7b07f1e8d1c21cf9e0a11fb997ee2c346eac9b2a3779f2184316621e",
+      "config": {
+        "run": {
+          "policy": "V0",
+          "seats": [
+            {
+              "seat": 0,
+              "user_name": "b10-v1-p0",
+              "policy": "V1"
+            },
+            {
+              "seat": 1,
+              "user_name": "b10-v1-p1",
+              "policy": "V0"
+            },
+            {
+              "seat": 2,
+              "user_name": "b10-v1-p2",
+              "policy": "V0"
+            },
+            {
+              "seat": 3,
+              "user_name": "b10-v1-p3",
+              "policy": "V0"
+            }
+          ],
+          "matches": 1,
+          "evaluation_team": 0,
+          "split": "final",
+          "experiment_id": "b10-final-20261020"
+        },
+        "platform": {
+          "url": "ws://127.0.0.1:18181",
+          "adapter_version": "openguandan-e92db7f-v1",
+          "rules_version": "e92db7fa9d915fb318b3be78703d5ccd4a09c887",
+          "mode": "create",
+          "room_id": null,
+          "server_rounds": 1
+        },
+        "decision": {
+          "total_s": 30.0,
+          "submit_reserve_s": 1.0,
+          "confirm_timeout_s": 5.0
+        },
+        "tools": {
+          "total_s": 0.5,
+          "deep_eval_limit": 8,
+          "candidate_target": 12,
+          "candidate_hard_limit": 24,
+          "engine_stop_grace_s": 0.5
+        },
+        "model": {
+          "name": "deepseek-flash",
+          "timeout_s": 20.0,
+          "max_output_tokens": 384,
+          "max_input_bytes": 24576,
+          "max_retries": 0,
+          "thinking": false,
+          "concurrency": 1
+        },
+        "review": {
+          "enabled": false,
+          "min_remaining_s": 2.0,
+          "split_cost_threshold": null
+        },
+        "batch": {
+          "max_model_calls": 20
+        },
+        "offline": {
+          "max_model_calls": 0
+        },
+        "history": {
+          "max_events": 100
+        },
+        "logs": {
+          "queue_capacity": 4096,
+          "cache_events": 2000,
+          "max_query_limit": 200
+        },
+        "ui": {
+          "poll_ms": 1000
+        },
+        "web": {
+          "host": "127.0.0.1",
+          "port": 8000,
+          "workers": 1,
+          "reload": false
+        },
+        "versions": {
+          "policy": "b05-rules-v1",
+          "candidate": "b05-candidates-v1",
+          "fallback": "b02-cheap-v1",
+          "prompt": "b09-facts-v3"
+        }
+      }
+    },
+    "V2": {
+      "path": "configs/b10-v2.toml",
+      "config_id": "12960dd79d6d190ce8ab188130dd7b96a8d6b106707e3e2153b1c18519d96176",
+      "config": {
+        "run": {
+          "policy": "V0",
+          "seats": [
+            {
+              "seat": 0,
+              "user_name": "b10-v2-p0",
+              "policy": "V2"
+            },
+            {
+              "seat": 1,
+              "user_name": "b10-v2-p1",
+              "policy": "V0"
+            },
+            {
+              "seat": 2,
+              "user_name": "b10-v2-p2",
+              "policy": "V0"
+            },
+            {
+              "seat": 3,
+              "user_name": "b10-v2-p3",
+              "policy": "V0"
+            }
+          ],
+          "matches": 1,
+          "evaluation_team": 0,
+          "split": "final",
+          "experiment_id": "b10-final-20261020"
+        },
+        "platform": {
+          "url": "ws://127.0.0.1:18181",
+          "adapter_version": "openguandan-e92db7f-v1",
+          "rules_version": "e92db7fa9d915fb318b3be78703d5ccd4a09c887",
+          "mode": "create",
+          "room_id": null,
+          "server_rounds": 1
+        },
+        "decision": {
+          "total_s": 30.0,
+          "submit_reserve_s": 1.0,
+          "confirm_timeout_s": 5.0
+        },
+        "tools": {
+          "total_s": 0.5,
+          "deep_eval_limit": 8,
+          "candidate_target": 12,
+          "candidate_hard_limit": 24,
+          "engine_stop_grace_s": 0.5
+        },
+        "model": {
+          "name": "deepseek-flash",
+          "timeout_s": 20.0,
+          "max_output_tokens": 384,
+          "max_input_bytes": 24576,
+          "max_retries": 0,
+          "thinking": false,
+          "concurrency": 1
+        },
+        "review": {
+          "enabled": true,
+          "min_remaining_s": 2.0,
+          "split_cost_threshold": null
+        },
+        "batch": {
+          "max_model_calls": 20
+        },
+        "offline": {
+          "max_model_calls": 0
+        },
+        "history": {
+          "max_events": 100
+        },
+        "logs": {
+          "queue_capacity": 4096,
+          "cache_events": 2000,
+          "max_query_limit": 200
+        },
+        "ui": {
+          "poll_ms": 1000
+        },
+        "web": {
+          "host": "127.0.0.1",
+          "port": 8000,
+          "workers": 1,
+          "reload": false
+        },
+        "versions": {
+          "policy": "b05-rules-v1",
+          "candidate": "b05-candidates-v1",
+          "fallback": "b02-cheap-v1",
+          "prompt": "b09-facts-v3"
+        }
+      }
+    }
+  },
+  "frozen_files_sha256": {
+    "configs/b10-v0.toml": "1083aaa33048fd49836fbb2924e3563efad18bd3b1c3d34c2759155f7fd7a1d0",
+    "configs/b10-v1.toml": "83fe0f84ff6f9b7d5df7daa47105b10ca8efad666ae825b37f0ce201b4254ff6",
+    "configs/b10-v2.toml": "5c6d92b43d9d8717b7ca23b145aaf148ee2d272c7d20381bce78537a6b3d3700",
+    "pyproject.toml": "a66ff55aaf73da6585b134df2dffb1368879f01f8582b364c90de42ea30ce79f",
+    "runtime/platform/workspace/guandan/target/guandan-java-action.jar": "40a0cbddc93f9797249da43c5590a8af017663789a79cd786b3ee3f7fa343bfc",
+    "runtime/platform/workspace/guandan-websocket/target/guandan-java-pure-1.0.0.jar": "d5e64e673bcd93f28c4ac51ed697a9ed900a70a148043677d2633b7a1c36242e",
+    "scripts/run_b10_batch.py": "5b46b8e6d18139254ce8bcc162bd2d260983e4644e5adc961d8de8c566b26fb8",
+    "src/guandan_agent/__init__.py": "5389d11de2f6b58283ace90bf3ca5cb1dfd92e025015baed99c4b4fa8f7b3972",
+    "src/guandan_agent/__main__.py": "d56bf4035d6f655119155850307260ca6adeaa432e6e2f0959238e5f14962dd8",
+    "src/guandan_agent/app.py": "e405be6442259a952f1b0c9671bbb121b83fd64b4f7079276c2684b2fa64269e",
+    "src/guandan_agent/cli.py": "c223943995f600a5f87c276106c37019d00dc5ba93ea91b8f448f3f902f697c6",
+    "src/guandan_agent/clock.py": "7912e565360e00b95c749be964921f19dde822a7b7a6d7eb205310fbceaba3c1",
+    "src/guandan_agent/config.py": "ed16af8bdb949990731445efcc83c7e7f83ff3e844a0ffee6366637137e3cdf1",
+    "src/guandan_agent/contracts.py": "eac26186e5b911184e2216f59ab929f7677ccc902d9d007ebfabea06faaae11f",
+    "src/guandan_agent/hand/__init__.py": "d93fa8e0bb5e93dfcc4e4ee0be114b524c89337366f220a8f46b5a55aaaa4c3d",
+    "src/guandan_agent/hand/candidates.py": "e3646521a90af3f6dcd44f643af1fa8f348e79329dcd700e81bb1d29d6dce964",
+    "src/guandan_agent/hand/cheap.py": "e3844a2f3b65cf8c065d806c1ce2b07f287ed57679ada5ed96b332e13dbea2fc",
+    "src/guandan_agent/hand/java_engine.py": "29ca23b8de13491d1aff2ffc28e910a9173f5be3b61386d6b01e447a7dac36dd",
+    "src/guandan_agent/hand/summary.py": "6e0040facd64ece7aaf7571f32ef689c9eda066c3ed42fa060075c79fc630748",
+    "src/guandan_agent/model/__init__.py": "301e2027a5257322074110ec8f438db98e009c6fc67541db38beef5a4cd13bff",
+    "src/guandan_agent/model/deepseek.py": "1a9b37476eb9ac714b6637c1d8521fff668f282a8ecea841c7ca375bbb474bdb",
+    "src/guandan_agent/model/gateway.py": "606d2b94a61032205ce9cd62e9817a2c953ed1b69c40136cf07c16c2fa5b980b",
+    "src/guandan_agent/model/provider.py": "6621f1ee86d7e0a304b4ed43f3e956a22fc107a14d75d848b3f75f24a90a56a2",
+    "src/guandan_agent/model/scripted.py": "d9fab8beea9ad3224edc31838a528df26bcbf5347753bd0030ef9dca8f8b027f",
+    "src/guandan_agent/offline/__init__.py": "52b2ac07ccaee96c6047c78854dd4f2bbfef618122ce7cd4045d0f3362d5946f",
+    "src/guandan_agent/offline/evaluate.py": "aabb4d82bce151383253188b7cb3d1a1b0df283d23cea8461b0071bec22b55da",
+    "src/guandan_agent/offline/facts.py": "e824cfc8a9feef164792bc0ced5832c3dd27312d8fc4c9784abc418c4110426f",
+    "src/guandan_agent/offline/output.py": "8d0771d4bc12d9326b93a07fead618f53fca0ba7e1229bb027855dd5a3d7e582",
+    "src/guandan_agent/offline/review.py": "f765e16fa89375c602fe2a424f93cfd467dbce982d2d839015ad65c3201c77e4",
+    "src/guandan_agent/platform/__init__.py": "48afa6bb7d3366f2abe193f15142001f9e4616db26e15c9f9c1e354d3e488076",
+    "src/guandan_agent/platform/adapter.py": "3846e532588e409c876243f3e118bc300e3674cedc957e651b9d5c1ac6c8594d",
+    "src/guandan_agent/platform/parser.py": "35d1866d7caa865ea20afc1288874e30f3d6033fa6be546b351356bac26874c9",
+    "src/guandan_agent/recording/__init__.py": "6021f1a85b79608c7d64b5349406490723fc10d0994772633076a966165d83d9",
+    "src/guandan_agent/recording/query.py": "eea310ecf7e49cee2f1667ea6e8cb5bc88a6b1e42d5b1f9a2b257ea936442421",
+    "src/guandan_agent/recording/reports.py": "51da517a05ff591b3df3c57f2ffc66bc6251202d98a3748ef5b4f6925968d98a",
+    "src/guandan_agent/recording/store.py": "b82515c6e192b7955ddbabd00147b1a8bfc44f8cb39ebceb5a5672da80bd0bdd",
+    "src/guandan_agent/runtime/__init__.py": "8917c10553267f4578291997344035cfea1ded5398abe7152b36469ca846d47b",
+    "src/guandan_agent/runtime/budget.py": "ac194ba462898cc5026aa0a4a90a3d8395af7c4e31cf89b4a2c0eaeafc808785",
+    "src/guandan_agent/runtime/manager.py": "05e419d7ad55ad63c20536384b7cf936e01e95525be620ab7568229818d62821",
+    "src/guandan_agent/runtime/offline.py": "2dd18e6507112b2fd0d833c3bbb050321ba7fd61247b31830f4455236c458768",
+    "src/guandan_agent/runtime/scheduling.py": "cdcafc16a61c2cc2bb4e38aa8081390fa1b656d8f2a619a5906d75ea0dce3e0e",
+    "src/guandan_agent/runtime/session.py": "6cb3c56b3cc3ec064dd25df6cc0e08bc869bbee9c1a4305cbb9ad680d59b6abb",
+    "src/guandan_agent/runtime/state.py": "06b008422ae4a7627ddf2221fc4f58e77494cd92a4ce3877135d908946e43f4f",
+    "src/guandan_agent/semantics.py": "a3ec284eb883f4ee3844f90c1e12d58de12997fa3ec5fa7a2e4e82346450dd4b",
+    "src/guandan_agent/strategy/__init__.py": "fb40dbe4f69f12387866b2cacd9d45fdbad01628a97ed799fd621aa8275533e0",
+    "src/guandan_agent/strategy/graph.py": "d601fc0cfc6d3ecdd35d20e8551342471df2244c945831f9b37dc7426cb4df64",
+    "src/guandan_agent/strategy/policy.py": "fc0e4b13eb042f6e9e01f9adc62a97d2ea9ee0e672f5315afab4e1e6651d55fe",
+    "src/guandan_agent/strategy/risk.py": "8e7c3382c38b646939aab834cf99bbf0080c5fb093259aa1d4ece8e0bd54eb28",
+    "src/guandan_agent/web/__init__.py": "f42f43f7ce3b07e2234f79773350506a40c00e38e4f2b3f21eacb7efcabf293c",
+    "src/guandan_agent/web/api.py": "1ae7a091dcadf74b0c3997d14e77ff7d7fb1e6339e4c5ebffe26b208402414a8",
+    "src/guandan_agent/web/static/app.js": "c027d30835349d51405a28b3a8e7a405ff3aeb9147b9bf518e9d6c22213aaa63",
+    "src/guandan_agent/web/static/index.html": "fd3f617b7cadaa57d842e53049dd797ac1148366a34680919139ddbb3e8b97f7",
+    "src/guandan_agent/web/static/styles.css": "9c6be26ed495bfa3b67db6917cf18e03da60384bf94ea5247a075bb9dd594a49",
+    "uv.lock": "8f2cf56722fe274438bfae809bed7a818bf84c4c77437353e6b4a08e77086a99"
+  }
+}

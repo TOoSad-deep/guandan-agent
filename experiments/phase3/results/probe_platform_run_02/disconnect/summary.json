@@ -1,0 +1,77 @@
+{
+  "mode": "disconnect",
+  "url": "ws://127.0.0.1:18181",
+  "started_at_utc": "2026-10-18T16:10:50.427071+00:00",
+  "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887",
+  "strategy": "deterministic own-request legal-list greedy with public teammate passing",
+  "information_boundary": "Each decision receives only that seat's request. Multi-seat raw logs are offline evidence; no cross-seat hand information is used for choosing actions.",
+  "requested_full_matches": 1,
+  "requests_by_stage": {
+    "play": 1
+  },
+  "sent_by_stage": {},
+  "confirmed_by_stage": {},
+  "notifications_by_stage": {
+    "beginning": 4
+  },
+  "first_level_by_seat": {
+    "0": "2",
+    "1": "2",
+    "2": "2",
+    "3": "2"
+  },
+  "settlements": [],
+  "errors": [
+    {
+      "seat": 0,
+      "message": {
+        "code": -1,
+        "data": {
+          "msg": "房间已满"
+        },
+        "type": "JOIN_ROOM"
+      }
+    }
+  ],
+  "observations": [
+    {
+      "test": "Close active seat and reconnect same user to same room/seat",
+      "seat": 0,
+      "join_responses": [
+        {
+          "code": -1,
+          "data": {
+            "msg": "房间已满"
+          },
+          "type": "JOIN_ROOM"
+        }
+      ],
+      "new_beginning_messages": 0,
+      "new_action_requests": 0,
+      "window_seconds": 5.0,
+      "interpretation": "JOIN success alone would not prove state restoration; no old action is replayed after reconnect."
+    }
+  ],
+  "status": "observation_complete",
+  "complete_match": false,
+  "room_id": 4,
+  "elapsed_seconds": 6.52655,
+  "sent_actions": 0,
+  "confirmed_actions": 0,
+  "unconfirmed_actions": [],
+  "game_over_seen_by_seats": [],
+  "game_result_seen_by_seats": [],
+  "raw_logs": [
+    "/Users/douwen/Documents/ChatGPT/gundan/experiments/phase3/results/probe_platform_run_02/disconnect/seat-0.jsonl",
+    "/Users/douwen/Documents/ChatGPT/gundan/experiments/phase3/results/probe_platform_run_02/disconnect/seat-1.jsonl",
+    "/Users/douwen/Documents/ChatGPT/gundan/experiments/phase3/results/probe_platform_run_02/disconnect/seat-2.jsonl",
+    "/Users/douwen/Documents/ChatGPT/gundan/experiments/phase3/results/probe_platform_run_02/disconnect/seat-3.jsonl"
+  ],
+  "coverage": {
+    "play_confirmed": false,
+    "pass_confirmed": false,
+    "tribute_confirmed": false,
+    "back_confirmed": false,
+    "anti_tribute_observed": false
+  }
+}

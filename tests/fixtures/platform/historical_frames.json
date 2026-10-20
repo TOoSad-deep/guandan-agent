@@ -1,0 +1,893 @@
+[
+  {
+    "name": "created",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 2,
+      "sha256": "2008af94f1b8d1dd8d09a4476a7f5689fe57fe779fa73b2d676c058e7cb2d778",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "code": 200,
+      "data": {
+        "userNum": 0,
+        "userName": null,
+        "userId": "phase3-normal-cae4c97a02-0",
+        "roomId": 1
+      },
+      "type": "CREATE_ROOM"
+    },
+    "expected_kind": "joined"
+  },
+  {
+    "name": "joined",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-1.jsonl",
+      "line": 2,
+      "sha256": "fcad032fd22a965699266952ebf3aa2655869af8fa3e9da940bda209316f5ca1",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 1,
+    "raw": {
+      "code": 200,
+      "data": {
+        "userNum": 1,
+        "roomId": 1
+      },
+      "type": "JOIN_ROOM"
+    },
+    "expected_kind": "joined"
+  },
+  {
+    "name": "join_notice",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 3,
+      "sha256": "17dc1085e648cfb228896ee83925568e7cab77d06968fbc53b5ccdfc5bc785ad",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "code": 200,
+      "data": {
+        "roomId": 1
+      },
+      "type": "JOIN"
+    },
+    "expected_kind": "auxiliary_notice"
+  },
+  {
+    "name": "beginning",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 6,
+      "sha256": "229bb96a9c271e3c2c9237fd961249898ced40610dbbcd50e85cc153585ce3d1",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "myPos": 0,
+      "stage": "beginning",
+      "levelCard": "2",
+      "handCards": [
+        "H2",
+        "D2",
+        "S3",
+        "C3",
+        "S4",
+        "H5",
+        "S5",
+        "C5",
+        "D5",
+        "S6",
+        "C6",
+        "H7",
+        "S7",
+        "C7",
+        "S7",
+        "C8",
+        "H9",
+        "ST",
+        "CT",
+        "DT",
+        "CT",
+        "HJ",
+        "CQ",
+        "HA",
+        "SA",
+        "CA",
+        "SB"
+      ],
+      "type": "notify"
+    },
+    "expected_kind": "round_started"
+  },
+  {
+    "name": "play_request",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 31,
+      "sha256": "1b3c6e12846a8ffbe754b94d25853f7df7ece6513f81989f6f395f243116ab24",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curPos": 3,
+      "indexRange": 1,
+      "greaterAction": [
+        "Bomb",
+        "9",
+        [
+          "C9",
+          "D9",
+          "C9",
+          "D9"
+        ]
+      ],
+      "publicInfo": [
+        {
+          "rest": 13
+        },
+        {
+          "rest": 10
+        },
+        {
+          "rest": 21
+        },
+        {
+          "rest": 17
+        }
+      ],
+      "actionList": [
+        [
+          "PASS",
+          "PASS",
+          "PASS"
+        ],
+        [
+          "Bomb",
+          "T",
+          [
+            "ST",
+            "CT",
+            "DT",
+            "CT"
+          ]
+        ]
+      ],
+      "type": "act",
+      "curAction": [
+        "Bomb",
+        "9",
+        [
+          "C9",
+          "D9",
+          "C9",
+          "D9"
+        ]
+      ],
+      "curRank": "2",
+      "oppoRank": "2",
+      "selfRank": "2",
+      "stage": "play",
+      "greaterPos": 3,
+      "handCards": [
+        "S4",
+        "S6",
+        "C6",
+        "C8",
+        "H9",
+        "ST",
+        "CT",
+        "DT",
+        "CT",
+        "HJ",
+        "CQ",
+        "HA",
+        "SB"
+      ]
+    },
+    "expected_kind": "action_requested"
+  },
+  {
+    "name": "lead_request",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 136,
+      "sha256": "c73e7ab422dff5b464b7d7090dd39a65832f6c1353528161c71b7041d54c1ebe",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curPos": -1,
+      "indexRange": 0,
+      "greaterAction": null,
+      "publicInfo": [
+        {
+          "rest": 1
+        },
+        {
+          "rest": 0
+        },
+        {
+          "rest": 0
+        },
+        {
+          "rest": 1
+        }
+      ],
+      "actionList": [
+        [
+          "Single",
+          "B",
+          [
+            "SB"
+          ]
+        ]
+      ],
+      "type": "act",
+      "curAction": null,
+      "curRank": "2",
+      "oppoRank": "2",
+      "selfRank": "2",
+      "stage": "play",
+      "greaterPos": -1,
+      "handCards": [
+        "SB"
+      ]
+    },
+    "expected_kind": "action_requested"
+  },
+  {
+    "name": "pass_request",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 19,
+      "sha256": "853a30adc7836e13d73d7b1650e94b7ebddada698da0680a7d5bd071b8cc7267",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curPos": -1,
+      "indexRange": 0,
+      "greaterAction": [
+        "Bomb",
+        "8",
+        [
+          "H8",
+          "C8",
+          "D8",
+          "H8",
+          "D8"
+        ]
+      ],
+      "publicInfo": [
+        {
+          "rest": 17
+        },
+        {
+          "rest": 16
+        },
+        {
+          "rest": 21
+        },
+        {
+          "rest": 21
+        }
+      ],
+      "actionList": [
+        [
+          "PASS",
+          "PASS",
+          "PASS"
+        ]
+      ],
+      "type": "act",
+      "curAction": null,
+      "curRank": "2",
+      "oppoRank": "2",
+      "selfRank": "2",
+      "stage": "play",
+      "greaterPos": 1,
+      "handCards": [
+        "S4",
+        "S6",
+        "C6",
+        "H7",
+        "S7",
+        "C7",
+        "S7",
+        "C8",
+        "H9",
+        "ST",
+        "CT",
+        "DT",
+        "CT",
+        "HJ",
+        "CQ",
+        "HA",
+        "SB"
+      ]
+    },
+    "expected_kind": "action_requested"
+  },
+  {
+    "name": "tribute_request",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 1754,
+      "sha256": "4295f37d8abe0be15e1209f39962c909dee941315128541974b76d46fec463b9",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curRank": "A",
+      "oppoRank": "Q",
+      "indexRange": 1,
+      "selfRank": "A",
+      "stage": "tribute",
+      "actionList": [
+        [
+          "tribute",
+          "tribute",
+          [
+            "SA"
+          ]
+        ],
+        [
+          "tribute",
+          "tribute",
+          [
+            "SA"
+          ]
+        ]
+      ],
+      "handCards": [
+        "H2",
+        "C2",
+        "D2",
+        "C3",
+        "C3",
+        "H4",
+        "S5",
+        "C5",
+        "D5",
+        "C6",
+        "H7",
+        "S7",
+        "D7",
+        "H7",
+        "C8",
+        "D8",
+        "S9",
+        "HJ",
+        "SJ",
+        "CJ",
+        "DJ",
+        "DQ",
+        "DQ",
+        "SK",
+        "CK",
+        "SA",
+        "CA"
+      ],
+      "type": "act"
+    },
+    "expected_kind": "action_requested"
+  },
+  {
+    "name": "back_request",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 410,
+      "sha256": "e34e60164ca6ca6c22c97ce5bf2ce1fc8830dad00cec05ca8c6c5e3c057e93bf",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curRank": "5",
+      "oppoRank": "3",
+      "tributePos": 2,
+      "indexRange": 31,
+      "selfRank": "5",
+      "stage": "back",
+      "actionList": [
+        [
+          "back",
+          "back",
+          [
+            "D2"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D2"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S2"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S2"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D3"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D3"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H3"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H3"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D4"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D4"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S4"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S4"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H6"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H6"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "D7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "C7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "C7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H7"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "C8"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "C8"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S8"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S8"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S9"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "S9"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H9"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "H9"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "HT"
+          ]
+        ],
+        [
+          "back",
+          "back",
+          [
+            "HT"
+          ]
+        ]
+      ],
+      "handCards": [
+        "S2",
+        "D2",
+        "H3",
+        "D3",
+        "S4",
+        "D4",
+        "S4",
+        "D4",
+        "H6",
+        "H7",
+        "S7",
+        "C7",
+        "D7",
+        "S8",
+        "C8",
+        "S8",
+        "H9",
+        "S9",
+        "HT",
+        "HJ",
+        "CJ",
+        "DJ",
+        "CQ",
+        "DQ",
+        "SA",
+        "DA",
+        "HR"
+      ],
+      "type": "act",
+      "tribute": "SB"
+    },
+    "expected_kind": "action_requested"
+  },
+  {
+    "name": "tribute_auxiliary",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 1753,
+      "sha256": "d67859c5421b7e25c41b5625e21a527b3854fc1e781090016f2d70eccdc6b3eb",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "code": 200,
+      "data": {
+        "actionList": {
+          "0": {
+            "cardLoc": 12,
+            "cardType": 1,
+            "playedCards": [
+              2
+            ],
+            "player": 0,
+            "cardPoint": [
+              12
+            ]
+          },
+          "1": {
+            "cardLoc": 12,
+            "cardType": 1,
+            "playedCards": [
+              2
+            ],
+            "player": 0,
+            "cardPoint": [
+              12
+            ]
+          }
+        }
+      },
+      "type": "tribute"
+    },
+    "expected_kind": "auxiliary_notice"
+  },
+  {
+    "name": "play_notice",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 9,
+      "sha256": "d84779cd35b6a5905f5b37fc7ba849e7e059149a0c4010239bdad29655ca22f4",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curPos": 0,
+      "stage": "play",
+      "greaterPos": -1,
+      "greaterAction": [
+        "PASS",
+        "PASS",
+        "PASS"
+      ],
+      "type": "notify",
+      "curAction": [
+        "ThreePair",
+        "A",
+        [
+          "H2",
+          "D2",
+          "S3",
+          "C3",
+          "SA",
+          "CA"
+        ]
+      ]
+    },
+    "expected_kind": "play_observed"
+  },
+  {
+    "name": "tribute_notice",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 141,
+      "sha256": "7010369bf1a4ab3dc85f8075e10080bc62755bdd1d29ec949b75bf0d2e0ede79",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "result": [
+        [
+          3,
+          1,
+          "SB"
+        ]
+      ],
+      "stage": "tribute",
+      "type": "notify"
+    },
+    "expected_kind": "tribute_announced"
+  },
+  {
+    "name": "back_notice",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 142,
+      "sha256": "c2b8fe7edc0c7b6b480177d34327d4de8da965061f2a7b7177578038db2306f5",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "result": [
+        [
+          1,
+          3,
+          "C2"
+        ]
+      ],
+      "stage": "back",
+      "count": 27,
+      "type": "notify"
+    },
+    "expected_kind": "exchange_completed"
+  },
+  {
+    "name": "anti_tribute",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 303,
+      "sha256": "8e719c9e0cc47227521443ba361a74a70309516b826fc1a3278311fabb962e0f",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "antiNums": 1,
+      "stage": "anti-tribute",
+      "antiPos": [
+        1
+      ],
+      "type": "notify"
+    },
+    "expected_kind": "anti_tribute"
+  },
+  {
+    "name": "episode_over",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 139,
+      "sha256": "e8409cb8cc2951217f8e3849d1a7cb40fd56f82e1ac4894d50121de15e043169",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curRank": "2",
+      "restCards": [
+        [
+          3,
+          [
+            "C3"
+          ]
+        ]
+      ],
+      "stage": "episodeOver",
+      "type": "notify",
+      "order": [
+        1,
+        2,
+        0,
+        3
+      ]
+    },
+    "expected_kind": "round_result"
+  },
+  {
+    "name": "game_result",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 2017,
+      "sha256": "227a47b894331cf042ce64bc8740caaae522d79c38ee83e7ad398a2003de5d36",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "stage": "gameResult",
+      "victory": 1,
+      "victoryRank": [
+        "A",
+        "A"
+      ],
+      "type": "notify",
+      "gameResult": [
+        14,
+        13,
+        0,
+        1
+      ],
+      "victoryNum": [
+        4,
+        6,
+        3,
+        1
+      ],
+      "gameRound": 1
+    },
+    "expected_kind": "match_result"
+  },
+  {
+    "name": "game_over",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/normal/seat-0.jsonl",
+      "line": 2018,
+      "sha256": "265b615d68da52e6fc09ba1bbd3152597e57c8ebc28e8f53b6faf714e1d4513d",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "curTimes": 1,
+      "stage": "gameOver",
+      "settingTimes": 1,
+      "type": "notify",
+      "gameRound": 1
+    },
+    "expected_kind": "match_closed"
+  },
+  {
+    "name": "join_failed",
+    "source": {
+      "path": "experiments/phase3/results/probe_platform_run_02/disconnect/seat-0.jsonl",
+      "line": 9,
+      "sha256": "9823ae9d58fb43766b45d24afff08afae91785ea658f1e9918ee0829c089ce4e",
+      "source_commit": "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
+    },
+    "seat": 0,
+    "raw": {
+      "code": -1,
+      "data": {
+        "msg": "房间已满"
+      },
+      "type": "JOIN_ROOM"
+    },
+    "expected_kind": "join_failed"
+  }
+]
