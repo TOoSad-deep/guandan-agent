@@ -463,9 +463,11 @@ class Session:
         self._final_deadline = event.received_mono + self.config.decision.total_s
         self._suggest_deadline = self._final_deadline - self.config.decision.submit_reserve_s
         self._decision_stage = "deciding"
+        # Log configured durations directly; subtracting absolute float clock
+        # values can introduce rounding noise into otherwise identical budgets.
         self._log("request_opened", {"context": context.model_dump(mode="json"),
-                                    "suggestion_budget_ms": (self._suggest_deadline - event.received_mono) * 1000.0,
-                                    "final_budget_ms": (self._final_deadline - event.received_mono) * 1000.0,
+                                    "suggestion_budget_ms": (self.config.decision.total_s - self.config.decision.submit_reserve_s) * 1000.0,
+                                    "final_budget_ms": self.config.decision.total_s * 1000.0,
                                     "budget_source": "local_experiment"}, binding)
         self._handles.append(self.scheduler.call_at(self._suggest_deadline,
             lambda: self.post(SuggestionDeadline(binding=binding))))

@@ -149,8 +149,9 @@ def closed():
             "settingTimes": 1, "gameRound": 1}
 
 
-def harness(*, platform=None, policy=None, hand=("S2", "S2", "H4"), fail_log=False):
-    clock = ManualClock(100.0)
+def harness(*, platform=None, policy=None, hand=("S2", "S2", "H4"), fail_log=False,
+            monotonic_start=100.0):
+    clock = ManualClock(monotonic_start)
     scheduler = ManualScheduler(clock)
     recorder = MemoryRecorder(fail_log)
     platform = platform or ControlledPlatform()
@@ -550,9 +551,10 @@ def test_new_request_cannot_skip_unconfirmed_prior_pass_even_if_hand_matches():
     asyncio.run(scenario())
 
 
-def test_logs_use_relative_budgets_and_canonical_execution_and_result_events():
+@pytest.mark.parametrize("monotonic_start", [100.0, 100.01, 1000.1, 65530.1])
+def test_logs_use_relative_budgets_and_canonical_execution_and_result_events(monotonic_start):
     async def scenario():
-        h = harness()
+        h = harness(monotonic_start=monotonic_start)
         h.post(request())
         await h.tick()
         h.post(play())
