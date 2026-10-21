@@ -1,0 +1,50 @@
+# Classroom connection template, not the teacher's actual connection details.
+# Replace URL, room_id, seat, user_name and evaluation_team before starting.
+# The documentation-only address below is intentionally not a live server.
+
+[run]
+policy = "V0"
+matches = 1
+evaluation_team = 0
+split = "development"
+experiment_id = "classroom-join"
+seats = [
+  { seat = 0, user_name = "YOUR_ASSIGNED_USER_ID" },
+]
+
+[platform]
+url = "ws://192.0.2.10:8181"
+mode = "join"
+room_id = 12345
+server_rounds = 1
+
+# Illustrative budgets for a server allowing at least 20 seconds per action.
+# Confirm the teacher's limit; keep total_s below it with network headroom.
+[decision]
+total_s = 18.0
+submit_reserve_s = 2.0
+confirm_timeout_s = 5.0
+
+[model]
+name = "deepseek-flash"
+timeout_s = 12.0
+max_output_tokens = 384
+max_input_bytes = 24576
+max_retries = 0
+thinking = false
+concurrency = 1
+
+# V0 is the no-model connection-check profile.
+# If changing policy to V1/V2, set an explicit new online call allowance.
+# This allowance is shared by all seats in this run.
+[batch]
+max_model_calls = 0
+
+[offline]
+max_model_calls = 0
+
+[versions]
+policy = "b05-rules-v1"
+candidate = "b05-candidates-v1"
+fallback = "b02-cheap-v1"
+prompt = "b09-facts-v3"

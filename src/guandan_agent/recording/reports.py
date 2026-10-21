@@ -1,15 +1,18 @@
-"""Read already-generated reports; loading never invokes a model or changes logs."""
+"""Explicit report refresh and deterministic evaluation over closed recordings."""
 from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping
 import json
 from pathlib import Path
+from uuid import uuid4
 
+from guandan_agent.clock import SystemClock
 from guandan_agent.contracts import (
     ErrorInfo, EvaluationReport, ReportPage, ReportSummary, ReviewReport,
 )
 from guandan_agent.recording.query import QueryError, QueryService
+from guandan_agent.recording.store import HistoryUnavailable, RecordingClosedError
 
 
 def _error(code: str, message: str) -> ErrorInfo:
@@ -17,13 +20,67 @@ def _error(code: str, message: str) -> ErrorInfo:
 
 
 class ReportStore:
-    """A small in-memory shelf populated explicitly at startup or by future P19."""
+    """A bounded shelf; reads stay in memory and explicit writes never call models."""
 
     def __init__(self, queries: QueryService, *, max_reports_per_run: int = 100):
         self.queries = queries
         self.max_reports = max_reports_per_run
         self._reports: dict[str, dict[str, ReviewReport | EvaluationReport]] = {}
         self._errors: dict[str, list[ErrorInfo]] = {}
+        self._mutation_lock = asyncio.Lock()
+
+    def _directory(self, run_id: str) -> Path:
+        # HTTP can select only a registered run, never a filesystem destination.
+        archive = self.queries.archive_path(run_id)
+        directory = archive / "reports"
+        if not archive.is_dir() or archive.resolve() != archive or directory.is_symlink():
+            raise QueryError("REPORT_DIRECTORY_UNAVAILABLE", 422, "The registered report directory is unavailable.")
+        return directory
+
+    def _check_idle(self) -> None:
+        if self._mutation_lock.locked():
+            raise QueryError("REPORT_BUSY", 409, "A report operation is already in progress. Please retry shortly.")
+
+    async def refresh(self, run_id: str) -> ReportPage:
+        directory = self._directory(run_id)
+        self._check_idle()
+        async with self._mutation_lock:
+            await self.load_directory(run_id, directory)
+            return self.list(run_id)
+
+    async def evaluate(self, run_id: str) -> EvaluationReport:
+        """Generate/reuse one single-run match report, without a provider or task."""
+        from guandan_agent.offline.evaluate import evaluate
+        from guandan_agent.offline.output import save_report
+
+        source = self.queries.closed_record(run_id)
+        directory = self._directory(run_id)
+        self._check_idle()
+        async with self._mutation_lock:
+            await self.load_directory(run_id, directory)
+            existing = [report for report in self._reports.get(run_id, {}).values()
+                        if isinstance(report, EvaluationReport) and report.run_ids == (run_id,)
+                        and report.unit == "match" and report.status in {"completed", "partial"}]
+            if existing:
+                return max(existing, key=lambda report: (report.created_at, report.report_id))
+            if len(self._reports.get(run_id, {})) >= self.max_reports:
+                raise QueryError("REPORT_LIMIT", 409, "The report shelf is full.")
+            try:
+                report = await asyncio.to_thread(
+                    evaluate, (source,), report_id=str(uuid4()),
+                    created_at=SystemClock().utc_now(), unit="match",
+                )
+            except HistoryUnavailable as exc:
+                raise QueryError("HISTORY_UNAVAILABLE", 410, "The complete recording is unavailable for evaluation.",
+                                 retained_from_seq=exc.retained_from_seq) from None
+            except (ValueError, RecordingClosedError):
+                raise QueryError("EVALUATION_UNAVAILABLE", 422, "The recording cannot be evaluated.") from None
+            try:
+                await save_report(directory / f"evaluation-{report.report_id}.json", report)
+            except (OSError, ValueError):
+                raise QueryError("REPORT_WRITE_FAILED", 503, "The statistics report could not be saved.") from None
+            self.register(run_id, report)
+            return report
 
     async def load_directory(self, run_id: str, directory: Path) -> None:
         self.queries.closed_record(run_id)
@@ -34,8 +91,12 @@ class ReportStore:
                 return values, 1
             if not directory.is_dir():
                 return values, 0
-            paths = sorted(directory.glob("*.json"))
-            for path in paths[:self.max_reports]:
+            # One execution sidecar accompanies each generated model review.
+            # It is not a report and must not consume the report shelf quota.
+            paths = sorted(path for path in directory.glob("*.json")
+                           if not path.name.endswith(".execution.json"))
+            scan_limit = self.max_reports * 2
+            for path in paths[:scan_limit]:
                 try:
                     if path.is_symlink() or path.stat().st_size > 512 * 1024:
                         failures += 1
@@ -43,10 +104,13 @@ class ReportStore:
                     value = json.loads(path.read_bytes())
                     # Batch audit/probe files are evidence, not generated reports.
                     if isinstance(value, dict) and value.get("kind") in {"review", "evaluation"}:
+                        if len(values) >= self.max_reports:
+                            failures += 1
+                            continue
                         values.append(value)
                 except (OSError, ValueError):
                     failures += 1
-            return values, failures + int(len(paths) > self.max_reports)
+            return values, failures + int(len(paths) > scan_limit)
 
         values, failures = await asyncio.to_thread(read)
         for value in values:
@@ -55,8 +119,9 @@ class ReportStore:
                 self.register(run_id, report)
             except (ValueError, QueryError):
                 failures += 1
-        if failures:
-            self._errors.setdefault(run_id, []).append(_error("REPORT_UNAVAILABLE", "部分报告文件无法安全读取或超出加载上限。"))
+        # A refresh describes its current scan, not every historical failure.
+        self._errors[run_id] = ([_error("REPORT_UNAVAILABLE", "部分报告文件无法安全读取或超出加载上限。")]
+                               if failures else [])
 
     def register(self, run_id: str, report: ReviewReport | EvaluationReport) -> None:
         """P19 can publish its validated result here; this grants no model budget."""

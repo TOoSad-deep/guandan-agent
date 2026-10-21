@@ -194,6 +194,85 @@ def test_directory_load_ignores_audits_and_reports_partial_loading(archive, tmp_
         page = shelf.list(source.run_id)
         assert [item.report_id for item in page.items] == [valid.report_id]
         assert len(page.errors) == 1 and page.errors[0].code == "REPORT_UNAVAILABLE"
+        await shelf.load_directory(source.run_id, folder)
+        assert shelf.list(source.run_id).errors == page.errors
+        for name in ("broken.json", "wrong.json", "link.json"):
+            (folder / name).unlink()
+        await shelf.load_directory(source.run_id, folder)
+        assert shelf.list(source.run_id).errors == ()
+    asyncio.run(scenario())
+
+
+def test_execution_sidecars_do_not_consume_report_capacity(archive):
+    async def scenario():
+        queries, _, source, anchor = await setup(archive)
+        shelf = ReportStore(queries, max_reports_per_run=2)
+        folder = archive / "reports"
+        folder.mkdir()
+        for index in range(2):
+            value = report(source, anchor, report_id=f"review-{index}")
+            (folder / f"review-{index}.json").write_text(value.model_dump_json())
+            (folder / f"review-{index}.execution.json").write_text('{"kind":"offline_execution"}')
+        page = await shelf.refresh(source.run_id)
+        assert len(page.items) == 2
+        assert page.errors == ()
+    asyncio.run(scenario())
+
+
+def test_evaluation_is_bounded_deduplicated_and_published_after_save(archive, monkeypatch):
+    from guandan_agent.offline import output
+
+    async def scenario():
+        _, shelf, source, _ = await setup(archive)
+        started, release = asyncio.Event(), asyncio.Event()
+        original = output.save_report
+        saved = []
+
+        async def slow_save(path, value):
+            saved.append(path)
+            started.set()
+            await release.wait()
+            return await original(path, value)
+
+        monkeypatch.setattr(output, "save_report", slow_save)
+        first = asyncio.create_task(shelf.evaluate(source.run_id))
+        await started.wait()
+        assert shelf.list(source.run_id).items == ()
+        with pytest.raises(QueryError) as failure:
+            await shelf.evaluate(source.run_id)
+        assert failure.value.code == "REPORT_BUSY"
+        release.set()
+        value = await first
+        assert value.kind == "evaluation" and value.run_ids == (source.run_id,)
+        assert shelf.get(source.run_id, value.report_id) == value
+        assert await shelf.evaluate(source.run_id) == value
+        assert saved == [archive.resolve() / "reports" / f"evaluation-{value.report_id}.json"]
+        assert len(tuple((archive / "reports").glob("evaluation-*.json"))) == 1
+    asyncio.run(scenario())
+
+
+def test_evaluation_rejects_symlink_report_destination(archive, tmp_path):
+    async def scenario():
+        _, shelf, source, _ = await setup(archive)
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        (archive / "reports").symlink_to(outside, target_is_directory=True)
+        with pytest.raises(QueryError) as failure:
+            await shelf.evaluate(source.run_id)
+        assert failure.value.code == "REPORT_DIRECTORY_UNAVAILABLE"
+        assert tuple(outside.iterdir()) == ()
+    asyncio.run(scenario())
+
+
+def test_evaluation_rejects_evicted_archive_without_writing_partial_totals(archive):
+    async def scenario():
+        queries = QueryService(create_manager(recording_root=archive.parent / "unused"), cache_events=1)
+        view = await queries.register_archive(archive)
+        shelf = ReportStore(queries)
+        with pytest.raises(QueryError) as failure:
+            await shelf.evaluate(view.run_id)
+        assert failure.value.code == "HISTORY_UNAVAILABLE" and failure.value.status_code == 410
+        assert not (archive / "reports").exists()
     asyncio.run(scenario())
 
 

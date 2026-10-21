@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 from pathlib import Path
 import shutil
 
@@ -10,6 +11,7 @@ import httpx
 from guandan_agent import app as composition
 from guandan_agent.cli import main
 from guandan_agent.config import RunConfig
+from guandan_agent.recording.query import QueryError, QueryService
 from tests.unit.test_reports import SOURCE, report
 
 
@@ -122,6 +124,77 @@ def test_lifespan_preloads_once_and_stops_owned_pending_run(tmp_path, monkeypatc
         assert final.status == "interrupted"
         assert final.error.code == "RUN_STOPPED"
         assert final.sessions == ()
+    asyncio.run(scenario())
+
+
+def test_new_report_refresh_and_statistics_generation_preserve_source_and_get_boundary(tmp_path, monkeypatch):
+    run_id, archive_root, configs = prepare(tmp_path)
+    archive = archive_root / run_id
+    original = {name: (archive / name).read_bytes() for name in ("config.json", "events.jsonl", "summary.json")}
+    forbid_credentials_and_providers(monkeypatch)
+    application = composition.create_web_application(recording_root=tmp_path / "live", config_root=configs,
+                                                      archive_root=archive_root)
+
+    async def scenario():
+        async with application.router.lifespan_context(application):
+            source = application.state.queries.closed_record(run_id)
+            anchor = next(event for event in source.cached_events if event.event_type == "request_opened")
+            folder = archive / "reports"
+            folder.mkdir()
+            (folder / "new-review.json").write_text(report(source, anchor).model_dump_json())
+            base = f"/api/v1/runs/{run_id}/reports"
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=application), base_url=ORIGIN) as client:
+                assert (await client.get(base)).json()["items"] == []
+                refreshed = await client.post(base + "/refresh", json={}, headers={"Origin": ORIGIN})
+                assert refreshed.status_code == 200
+                assert [item["report_id"] for item in refreshed.json()["items"]] == ["fixed-review"]
+                generated = await client.post(base + "/evaluate", json={}, headers={"Origin": ORIGIN})
+                assert generated.status_code == 200
+                value = generated.json()
+                assert value["kind"] == "evaluation" and value["run_ids"] == [run_id]
+                assert value["counts"]["started"] == 2
+                persisted = json.loads((folder / f"evaluation-{value['report_id']}.json").read_text())
+                assert persisted == value
+                repeated = await client.post(base + "/evaluate", json={}, headers={"Origin": ORIGIN})
+                assert repeated.json() == value
+                with monkeypatch.context() as patch:
+                    patch.setattr(Path, "open", forbidden)
+                    patch.setattr(Path, "read_text", forbidden)
+                    patch.setattr(Path, "read_bytes", forbidden)
+                    assert len((await client.get(base)).json()["items"]) == 2
+                    assert (await client.get(base + "/" + value["report_id"])).json() == value
+            assert application.state.manager.list_views() == ()
+        assert original == {name: (archive / name).read_bytes() for name in original}
+        assert not (tmp_path / "live").exists()
+    asyncio.run(scenario())
+
+
+def test_archive_startup_chooses_eight_most_recent_summaries_not_uuid_order(tmp_path, monkeypatch):
+    archive_root = tmp_path / "archives"
+    archive_root.mkdir()
+    expected = []
+    for index in range(10):
+        # The most recent run deliberately has the lexically smallest UUID.
+        path = archive_root / f"00000000-0000-0000-0000-{9 - index:012d}"
+        path.mkdir()
+        summary = path / "summary.json"
+        summary.write_text("{}")
+        os.utime(summary, ns=(1_000_000_000 + index, 1_000_000_000 + index))
+        expected.append(path)
+    attempted = []
+
+    async def record_attempt(self, path):
+        attempted.append(path)
+        raise QueryError("ARCHIVE_INVALID", 422, "Test snapshot is intentionally unavailable.")
+
+    monkeypatch.setattr(QueryService, "register_archive", record_attempt)
+    application = composition.create_web_application(recording_root=tmp_path / "live", allowed_config_names=(),
+                                                      archive_root=archive_root)
+
+    async def scenario():
+        async with application.router.lifespan_context(application):
+            assert attempted == expected[-8:]
+            assert len(application.state.archive_errors) == 8
     asyncio.run(scenario())
 
 

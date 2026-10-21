@@ -20,10 +20,10 @@ import time
 
 from guandan_agent.app import run_config
 from guandan_agent.config import load_config
+from guandan_agent.java_runtime import java_executable
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "artifacts/b10"
-JAVA = Path("/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java")
 JAR = ROOT / "runtime/platform/workspace/guandan-websocket/target/guandan-java-pure-1.0.0.jar"
 LIMIT_S = 1200
 
@@ -82,7 +82,7 @@ def run(version: str) -> int:
               "error_code": None, "server_stopped": False}
     try:
         with (case / "server.log").open("wb") as log:
-            server = subprocess.Popen([str(JAVA), "-Dserver.port=18181", "-jar", str(JAR)],
+            server = subprocess.Popen([java_executable(), "-Dserver.port=18181", "-jar", str(JAR)],
                                       cwd=case, stdout=log, stderr=subprocess.STDOUT, env=server_env)
             ready_deadline = time.monotonic() + 20
             while not listening():

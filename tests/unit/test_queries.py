@@ -80,6 +80,7 @@ def test_archive_read_is_one_load_and_private_facts_are_whitelisted(tmp_path, mo
         assert "restCards" not in state.model_dump_json()
         assert query.list_runs()[0].read_only
         assert query.closed_record(run.run_id).health.closed
+        assert query.archive_path(run.run_id) == source.resolve()
         monkeypatch.setattr(Path, "open", lambda *a, **k: (_ for _ in ()).throw(AssertionError("GET disk read")))
         for _ in range(3):
             assert query.view(run.run_id) == run
@@ -231,6 +232,63 @@ def test_live_and_completed_manager_queries_never_add_calls_or_submissions(tmp_p
         scoped = live.query_events(run.run_id, first.session_id, limit=200)
         assert scoped.items and all(event.seat == first.seat for event in scoped.items)
         assert_error(404, lambda: query.decisions(run.run_id, str(uuid4())))
+    asyncio.run(scenario())
+
+
+def test_closed_run_uses_registered_history_after_live_cache_eviction(tmp_path, monkeypatch):
+    async def scenario():
+        clock = SystemClock()
+        rooms = ScriptedRooms(clock)
+        live = RunManager(clock=clock, scheduler=AsyncioScheduler(clock), recording_root=tmp_path,
+                          platform_factory=rooms.factory,
+                          tools_factory=lambda _: HandTools(clock=clock))
+        query = QueryService(live)
+        run = live.start(RunConfig.model_validate({
+            "run": {"policy": "V0"},
+            "batch": {"max_model_calls": 0},
+            "tools": {"deep_eval_limit": 0},
+            "logs": {"cache_events": 8},
+        }))
+        final = await asyncio.wait_for(live.wait(run.run_id), 4)
+        first = final.sessions[0]
+        assert live.is_closed(run.run_id)
+        assert_error(410, lambda: query.decisions(run.run_id, first.session_id))
+        assert_error(409, lambda: query.archive_path(run.run_id))
+
+        await query.register_archive(live.archive_path(run.run_id))
+        before = len(rooms.writes)
+        page = query.decisions(run.run_id, first.session_id)
+        assert page.retained_from_seq == 1
+        assert page.items and page.items[0].request_id.endswith(":q1")
+        detail = query.decision(run.run_id, first.session_id, page.items[0].request_id)
+        assert detail.state.binding.session_id == first.session_id
+        assert detail.execution.status == "confirmed"
+        assert query.archive_path(run.run_id) == (tmp_path / run.run_id).resolve()
+        assert len(rooms.writes) == before
+
+        # An archive must not replace the running manager's view of events.
+        monkeypatch.setattr(live, "is_closed", lambda _: False)
+        assert_error(410, lambda: query.decisions(run.run_id, first.session_id))
+    asyncio.run(scenario())
+
+
+def test_initial_eviction_response_skips_a_truncated_request(tmp_path):
+    async def scenario():
+        query = QueryService(manager(tmp_path), cache_events=100)
+        run = await query.register_archive(FIXTURE)
+        source = query.closed_record(run.run_id)
+        retained = source.cached_events
+        anchors = {event.request_id for event in retained if event.event_type == "request_opened"}
+        orphan = next(event for event in retained
+                      if event.request_id is not None and event.request_id not in anchors)
+        error = assert_error(410, lambda: query.decisions(run.run_id, orphan.session_id))
+        orphan_end = max(event.seq for event in retained
+                         if event.session_id == orphan.session_id
+                         and event.request_id is not None and event.request_id not in anchors)
+        assert error.retained_from_seq > orphan_end
+        page = query.decisions(run.run_id, orphan.session_id,
+                               after_seq=error.retained_from_seq - 1)
+        assert all(item.opened_seq >= error.retained_from_seq for item in page.items)
     asyncio.run(scenario())
 
 

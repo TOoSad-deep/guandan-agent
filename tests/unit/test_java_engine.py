@@ -1,12 +1,15 @@
 """Own-residual worker isolation and bounded process lifetime."""
 import asyncio
 import json
+import os
 from pathlib import Path
+import shutil
 
 import pytest
 
 from guandan_agent.clock import SystemClock
 from guandan_agent.hand import EngineError, JavaActionEngine
+from guandan_agent.java_runtime import java_executable
 
 
 class Stdin:
@@ -100,8 +103,10 @@ def test_queue_wait_counts_against_deadline(monkeypatch):
 
 def test_real_java_residual_hand_smoke():
     jar = Path("runtime/platform/workspace/guandan/target/guandan-java-action.jar")
-    java = Path("/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java")
-    if not jar.is_file() or not java.is_file():
+    java = java_executable()
+    if not jar.is_file() or shutil.which(java) is None:
+        if os.environ.get("GUANDAN_REQUIRE_JAVA_SMOKE") == "1":
+            pytest.fail("CI must build the official Java JAR and provide JDK 21")
         pytest.skip("locally prepared official Java JAR / JDK 21 unavailable")
     async def scenario():
         engine = JavaActionEngine(jar, java_executable=str(java))

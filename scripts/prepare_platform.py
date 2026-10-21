@@ -17,11 +17,12 @@ import subprocess
 import tarfile
 import uuid
 
+from guandan_agent.java_runtime import find_jdk_home, jdk_tool
+
 PROJECT = Path(__file__).resolve().parents[1]
 UPSTREAM_COMMIT = "e92db7fa9d915fb318b3be78703d5ccd4a09c887"
 ARCHIVE_SHA256 = "cb4015c37a4c19e5e6f59d856ee98e1d5a3f5708e46f86411ee4267e790fddc5"
 SNAPSHOT_NAME = "OpenGuanDan-Simulator-e92db7f"
-DEFAULT_JAVA_HOME = Path("/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home")
 MODULE_JARS = {
     "guandan-websocket": "guandan-java-pure-1.0.0.jar",
     "guandan": "guandan-java-action.jar",
@@ -146,7 +147,8 @@ def seed_cache(seed: Path, cache: Path, runtime: Path) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--java-home", type=Path, default=DEFAULT_JAVA_HOME)
+    parser.add_argument("--java-home", type=Path,
+                        help="JDK 21 directory; defaults to JAVA_HOME, local macOS JDK, then PATH")
     parser.add_argument("--offline", action="store_true", help="Forbid Maven dependency downloads")
     parser.add_argument("--maven-cache-seed", type=Path, help="Read-only seed copied into runtime cache")
     args = parser.parse_args(argv)
@@ -164,12 +166,15 @@ def main(argv: list[str] | None = None) -> int:
         safe_output(logs, runtime).mkdir(parents=True, exist_ok=False)
         files = verify_snapshot(PROJECT)
         metadata["source_files"] = {name: digest(data) for name, data in sorted(files.items())}
-        java_home = args.java_home.expanduser().resolve()
+        try:
+            java_home = find_jdk_home(args.java_home)
+        except ValueError as error:
+            raise BuildError(str(error), 3) from error
         env = os.environ.copy()
         env["JAVA_HOME"] = str(java_home)
         env["PATH"] = str(java_home / "bin") + os.pathsep + env.get("PATH", "")
-        java_version = version([str(java_home / "bin/java"), "-version"], env)
-        javac_version = version([str(java_home / "bin/javac"), "-version"], env)
+        java_version = version([str(jdk_tool(java_home, "java")), "-version"], env)
+        javac_version = version([str(jdk_tool(java_home, "javac")), "-version"], env)
         metadata.update(java_home=str(java_home), java_version=java_version, javac_version=javac_version)
         require_jdk21(java_version, javac_version)
         maven = shutil.which("mvn", path=env["PATH"])

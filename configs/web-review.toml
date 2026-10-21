@@ -1,0 +1,24 @@
+# Web report generation is explicit: one click, at most one provider call.
+# This budget is shared by all web review tasks for the server's lifetime.
+[run]
+policy = "V0"
+seats = [{ seat = 0, user_name = "offline-source", policy = "V0" }]
+split = "development"
+experiment_id = "web-review"
+
+[model]
+name = "deepseek-flash"
+timeout_s = 20.0
+max_output_tokens = 2400
+max_input_bytes = 24576
+max_retries = 0
+concurrency = 1
+
+[batch]
+max_model_calls = 0
+
+[offline]
+max_model_calls = 10
+
+[versions]
+prompt = "b09-offline-v3"

@@ -1,0 +1,2 @@
+# Keep checked-out fixtures and source hashes identical on Windows and Unix.
+* text=auto eol=lf

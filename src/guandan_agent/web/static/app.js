@@ -1,13 +1,17 @@
 "use strict";
 
-// This reader owns presentation only. No model, action, or replay endpoints exist.
+// Reading never starts a model call. Model review requires its explicit button.
 const API = "/api/v1";
 const $ = (id) => document.getElementById(id);
 const ui = {
   runs: [], configs: [], run: null, session: null, view: null,
-  runEpoch: 0, sessionEpoch: 0, detailEpoch: 0, reportEpoch: 0, evidenceEpoch: 0,
+  runEpoch: 0, sessionEpoch: 0, detailEpoch: 0, reportListEpoch: 0, reportDetailEpoch: 0, evidenceEpoch: 0,
   pollBusy: false, decisionsBusy: false, cursor: 0, retainedFrom: 1,
   decisions: [], selectedRequest: null, mode: "table", report: null,
+  historyStatus: "idle", historyError: null, historyGap: false, historyNew: false, historyMore: false,
+  reportActionBusy: false, reportGenerationEnabled: null,
+  modelReview: null, reviewSessionId: "", reviewSessionManual: false, reviewSessionsKey: null, reviewStarting: false,
+  reviewTasks: new Map(), reviewErrors: new Map(), reviewPollBusy: false, capabilitiesEpoch: 0,
   observedActiveMatchId: null,
   followActiveMatch: true,
 };
@@ -21,6 +25,14 @@ const labels = {
   unknown: "执行结果未知", rejected: "服务端拒绝", kept: "保留原选", changed: "改选动作",
   repaired: "修复成功", skipped: "跳过", failed: "失败", partial: "部分完成",
   trusted: "已知事实", degraded: "信息降级", none: "无", evaluation: "统计报告",
+  preparing: "准备候选", deciding: "正在决策", submitting: "正在提交", invalidated: "请求已失效",
+  ok: "正常", legal_pass: "合法不出", finishes_hand: "可出完手牌", opponent_close: "应对对手即将出完",
+  rule_choice: "规则首选", top_score: "规则高分",
+};
+const actionLabels = {
+  Single: "单张", Pair: "对子", Trips: "三张", ThreeWithTwo: "三带二",
+  TwoTrips: "钢板", ThreePair: "三连对", Straight: "顺子", StraightFlush: "同花顺",
+  Bomb: "炸弹", FourKings: "四王炸", PASS: "不出", tribute: "进贡", back: "还贡",
 };
 const featureLabels = {
   remaining_count: "出后余牌", remaining_cards: "出后余牌", estimated_turns: "估计轮数",
@@ -38,6 +50,11 @@ function element(tag, className, text) {
 function replace(id, ...children) { $(id).replaceChildren(...children); }
 function name(value) { return value == null ? "—" : (labels[value] || String(value)); }
 function short(value, length = 8) { return value ? String(value).slice(0, length) : "—"; }
+function rankName(value) { return ({ T: "10", B: "小王", R: "大王" })[value] || value || "—"; }
+function actionName(wire) {
+  const kind = actionLabels[wire[0]] || wire[0];
+  return ["PASS", "FourKings", "tribute", "back"].includes(wire[0]) ? kind : `${kind} · ${rankName(wire[1])}`;
+}
 function valueText(value) {
   if (value == null) return "—";
   if (typeof value === "boolean") return value ? "是" : "否";
@@ -97,12 +114,72 @@ async function api(path, options = {}) {
 function runPath() { return `/runs/${encodeURIComponent(ui.run.run_id)}`; }
 function sessionPath() { return `${runPath()}/sessions/${encodeURIComponent(ui.session.session_id)}`; }
 function active(run) { return run && ["starting", "running", "stopping"].includes(run.status); }
+function reviewPending(task) { return task.status === "running" || (["completed", "partial"].includes(task.status) && !task.report_ready); }
 function updateControls() {
   const archival = ui.run?.read_only === true;
   $("start-run").disabled = !ui.configs.length || archival || active(ui.run) || ui.runs.some((run) => run.run_id !== ui.run?.run_id && active(run));
   $("stop-run").disabled = !ui.run || archival || !active(ui.run) || ui.run.status === "stopping";
   $("config-select").disabled = archival;
   $("start-run").title = archival ? "当前为只读归档；选择“新运行”后可启动配置" : "使用本地允许的配置创建运行";
+  $("refresh-reports").disabled = !ui.run || ui.reportActionBusy;
+  $("generate-report").disabled = !ui.run || active(ui.run) || ui.reportActionBusy || !ui.reportGenerationEnabled;
+  const generationHint = ui.reportGenerationEnabled === false ? "固定演示归档只读，可浏览已有报告。"
+    : ui.reportGenerationEnabled !== true ? "报告生成能力尚未加载。"
+    : active(ui.run) ? "运行结束后，可生成统计报告。模型调用 0 次。" : "生成统计报告 · 模型调用 0 次";
+  $("generate-report").title = generationHint;
+  $("report-generation-hint").textContent = generationHint;
+  renderReviewControls();
+}
+function renderReviewControls() {
+  const sessions = ui.run?.sessions || [];
+  const select = $("review-session-select");
+  const existing = sessions.find((session) => session.session_id === ui.reviewSessionId);
+  const current = sessions.find((session) => session.session_id === ui.session?.session_id);
+  const chosen = ui.reviewSessionManual ? existing : current;
+  ui.reviewSessionId = chosen?.session_id || "";
+  const sessionsKey = JSON.stringify([ui.run?.run_id, sessions.map((session) => [session.session_id, session.seat, session.match_id])]);
+  if (ui.reviewSessionsKey !== sessionsKey) {
+    ui.reviewSessionsKey = sessionsKey;
+    select.replaceChildren(element("option", "", "请选择复盘座位"));
+    select.firstElementChild.value = "";
+    for (const session of sessions) {
+      const option = element("option", "", `座位 ${session.seat} · ${short(session.match_id, 6)} · ${short(session.session_id, 6)}`);
+      option.value = session.session_id;
+      select.append(option);
+    }
+  }
+  if (select.value !== ui.reviewSessionId) select.value = ui.reviewSessionId;
+  select.disabled = !sessions.length || ui.reviewStarting;
+  const capability = ui.modelReview;
+  const running = [...ui.reviewTasks.values()].find((record) => reviewPending(record.task));
+  const reason = !ui.run ? "先选择已结束的运行。"
+    : active(ui.run) ? "运行结束后可生成模型复盘。"
+    : !capability ? "模型复盘配置尚未加载。"
+    : !capability.enabled ? capability.disabled_reason || "模型复盘尚未启用。"
+    : !(capability.remaining_calls > 0) ? "本批模型复盘额度已用完。"
+    : ui.reviewStarting ? "正在创建复盘任务…"
+    : running ? "已有模型复盘正在生成。"
+    : !ui.reviewSessionId ? "请选择要复盘的座位。" : "";
+  $("generate-model-review").disabled = Boolean(reason) || ui.reportActionBusy;
+  $("generate-model-review").title = reason || "按所选座位生成一份模型复盘";
+  const description = capability
+    ? `每份最多 ${valueText(capability.max_decisions)} 条关键决策 · ${valueText(capability.calls_per_report)} 次 ${capability.model || "DeepSeek"} 调用 · 剩余 ${valueText(capability.remaining_calls)} / ${valueText(capability.max_calls)} 次`
+    : "模型复盘配置尚未加载。";
+  $("model-review-hint").textContent = `${description}${reason ? `\n${reason}` : ""}`;
+  const record = ui.reviewTasks.get(ui.run?.run_id), status = $("model-review-status");
+  const error = ui.reviewErrors.get(ui.run?.run_id);
+  status.hidden = !record && !error;
+  status.className = "inline-message";
+  if (record) {
+    const task = record.task;
+    const taskSeat = sessions.find((session) => session.session_id === record.sessionId)?.seat;
+    const scope = taskSeat == null ? "后台复盘任务" : `座位 ${taskSeat} 的模型复盘`;
+    const state = task.report_ready ? (task.status === "partial" ? "已部分生成" : task.status === "failed" ? "已保存失败报告" : "已生成")
+      : task.status === "running" ? "正在生成…" : task.status === "failed" ? "生成失败" : "正在保存报告…";
+    status.textContent = `${scope} · ${state} · 实际模型调用 ${valueText(task.calls_started)} 次${task.error ? `\n${errorMessage(task.error)}` : ""}${record.pollError ? `\n${record.pollError}` : ""}${error ? `\n${error}` : ""}`;
+  } else status.textContent = error || "";
+  const ready = record?.task.report_ready === true && Boolean(record.task.report_id);
+  $("open-model-review").hidden = !ready;
 }
 function renderRun() {
   $("run-mode").textContent = ui.run ? (ui.run.read_only ? "只读归档" : "当前进程") : "等待选择";
@@ -119,7 +196,8 @@ function renderRunOptions() {
   select.replaceChildren(element("option", "", "新运行 / 未选择"));
   select.firstElementChild.value = "";
   for (const run of ui.runs) {
-    const option = element("option", "", `${run.read_only ? "归档" : "当前"} · ${run.label || short(run.run_id)} · ${name(run.status)}`);
+    const option = element("option", "", `${run.read_only ? "归档" : "当前"} · ${run.label || "未命名运行"} · ${short(run.run_id)} · ${name(run.status)}`);
+    option.title = run.run_id;
     option.value = run.run_id;
     select.append(option);
   }
@@ -146,8 +224,11 @@ async function loadRuns({ initial = false } = {}) {
   } catch (error) { if (epoch === ui.runEpoch) message(errorMessage(error), "error"); }
 }
 async function loadConfigs() {
+  const epoch = ++ui.capabilitiesEpoch;
   try {
-    ui.configs = (await api("/configs")).items || [];
+    const result = await api("/configs");
+    ui.configs = result.items || [];
+    if (epoch === ui.capabilitiesEpoch) applyReportCapabilities(result);
     const select = $("config-select");
     select.replaceChildren();
     for (const config of ui.configs) {
@@ -159,23 +240,80 @@ async function loadConfigs() {
   } catch (error) { replace("config-select", element("option", "", "配置读取失败")); message(errorMessage(error), "error"); }
   updateControls();
 }
+function applyReportCapabilities(result) {
+  ui.reportGenerationEnabled = typeof result.report_generation_enabled === "boolean" ? result.report_generation_enabled : null;
+  ui.modelReview = result.model_review || null;
+  if (ui.modelReview?.active_task) rememberReviewTask(ui.modelReview.active_task);
+}
+async function loadReviewCapabilities() {
+  const epoch = ++ui.capabilitiesEpoch;
+  try {
+    const result = await api("/configs");
+    if (epoch !== ui.capabilitiesEpoch) return;
+    applyReportCapabilities(result); updateControls();
+  } catch { /* Task state is still read independently; generation is never retried. */ }
+}
+function persistReviewTasks() {
+  try {
+    localStorage.setItem("guandan.review_tasks", JSON.stringify([...ui.reviewTasks.values()].map((record) => ({
+      task_id: record.task.task_id, source_run_id: record.task.source_run_id, session_id: record.sessionId,
+    }))));
+  } catch { /* Server capabilities can recover an active task without storage. */ }
+}
+function restoreReviewTasks() {
+  try {
+    const records = JSON.parse(localStorage.getItem("guandan.review_tasks") || "[]");
+    if (!Array.isArray(records)) return;
+    for (const record of records) {
+      if (typeof record.task_id !== "string" || typeof record.source_run_id !== "string") continue;
+      rememberReviewTask({ task_id: record.task_id, source_run_id: record.source_run_id, status: "running", report_ready: false }, record.session_id);
+    }
+  } catch { /* Browser storage is optional and may contain obsolete data. */ }
+}
+function rememberReviewTask(task, sessionId) {
+  if (!task?.task_id || !task.source_run_id) return null;
+  let record = ui.reviewTasks.get(task.source_run_id);
+  if (record?.task.task_id === task.task_id) {
+    if (record.task.status === "running" || task.status !== "running") record.task = task;
+    if (sessionId) record.sessionId = sessionId;
+  } else {
+    record = { task, sessionId: sessionId || "", presentedEpoch: -1, pollError: "",
+      watchRunEpoch: ui.run?.run_id === task.source_run_id ? ui.runEpoch : null,
+      detailEpoch: ui.reportDetailEpoch };
+    ui.reviewTasks.set(task.source_run_id, record);
+    persistReviewTasks();
+  }
+  return record;
+}
 async function selectRun(id) {
   ui.runEpoch += 1;
   ui.sessionEpoch += 1;
   ui.detailEpoch += 1;
-  ui.reportEpoch += 1;
+  ui.reportListEpoch += 1; ui.reportDetailEpoch += 1;
   ui.evidenceEpoch += 1;
   ui.run = ui.runs.find((run) => run.run_id === id) || null;
   ui.session = null; ui.view = null; ui.report = null;
+  ui.reviewSessionId = ""; ui.reviewSessionManual = false;
   ui.observedActiveMatchId = null;
   ui.followActiveMatch = true;
   ui.decisions = []; ui.cursor = 0; ui.selectedRequest = null;
   ui.decisionsBusy = false;
+  ui.historyStatus = "idle"; ui.historyError = null; ui.historyGap = false; ui.historyNew = false; ui.historyMore = false;
+  ui.reportActionBusy = false;
+  $("report-action-status").hidden = true;
   message("");
   replace("decision-detail", empty("选择一条决策", "查看候选动作、模型理由和实际执行。"));
   replace("report-body", empty("选择一份已有报告", "浏览报告不会触发新的模型调用。"));
   closeEvidence();
   renderRunOptions(); renderRun(); renderSessions(); renderTable(); renderDecisions();
+  const reviewTask = ui.reviewTasks.get(id);
+  if (reviewTask) {
+    reviewTask.watchRunEpoch = ui.runEpoch; reviewTask.detailEpoch = ui.reportDetailEpoch;
+    if (ui.run?.sessions.some((session) => session.session_id === reviewTask.sessionId)) {
+      ui.reviewSessionId = reviewTask.sessionId; ui.reviewSessionManual = true;
+    }
+    renderReviewControls();
+  }
   try { if (id) localStorage.setItem("guandan.run_id", id); else localStorage.removeItem("guandan.run_id"); } catch { /* Optional preference only. */ }
   if (!ui.run) { replace("report-list", empty("暂无运行", "先选择一个已有运行。", true)); return; }
   const epoch = ui.runEpoch;
@@ -186,6 +324,7 @@ async function selectRun(id) {
     renderRun(); renderSessions();
   } catch (error) { if (epoch === ui.runEpoch) message(errorMessage(error), "error"); }
   if (ui.mode === "reports" && epoch === ui.runEpoch) await loadReports();
+  if (ui.modelReview && epoch === ui.runEpoch) loadReviewCapabilities();
 }
 function renderSessions() {
   const select = $("session-select");
@@ -214,10 +353,13 @@ function selectSession(id, { manual = false } = {}) {
   ui.session = ui.run?.sessions.find((session) => session.session_id === id) || null;
   if (manual) ui.followActiveMatch = !ui.run?.active_match_id || ui.session?.match_id === ui.run.active_match_id;
   ui.view = null; ui.cursor = 0; ui.decisions = []; ui.selectedRequest = null; ui.decisionsBusy = false;
+  ui.historyStatus = "idle"; ui.historyError = null; ui.historyGap = false; ui.historyNew = false; ui.historyMore = false;
+  ui.retainedFrom = 1;
   $("session-select").value = id;
   $("history-message").hidden = true; $("recover-history").hidden = true;
   replace("decision-detail", empty("选择一条决策", "当前详情始终标明所属座位和请求。"));
   renderTable(); renderDecisions();
+  renderReviewControls();
   $("refresh-decisions").disabled = !ui.session;
   if (ui.session) { pollState(); loadDecisions(true); }
 }
@@ -263,7 +405,7 @@ function renderTable() {
   const state = ui.view?.state;
   const seat = ui.session?.seat ?? 0;
   $("round-value").textContent = ui.view?.round_id ? `第 ${ui.view.round_id} 局` : "—";
-  $("level-value").textContent = state?.level_rank || "—";
+  $("level-value").textContent = rankName(state?.level_rank);
   $("stage-value").textContent = state ? name(state.stage) : "等待牌桌";
   $("decision-stage").textContent = name(ui.view?.decision_stage);
   $("table-subtitle").textContent = ui.session ? `座位 ${seat} 的独立视角 · 队友为座位 ${(seat + 2) % 4}` : "每个视角，只展示该座位可见的信息";
@@ -274,7 +416,7 @@ function renderTable() {
   player(seat, "south", counts, seat);
   $("leader-label").textContent = state?.leader_seat != null ? `领出 · 座位 ${state.leader_seat}` : (state ? "当前无领出动作" : "等待牌桌信息");
   replace("leading-cards", ...(state?.leading_action ? Array.from(actionCards(state.leading_action).childNodes) : []));
-  $("leading-type").textContent = state?.leading_action ? `${state.leading_action[0]} · ${state.leading_action[1]}` : (state ? "公开领出动作将在这里显示" : "平台公开信息将在这里显示");
+  $("leading-type").textContent = state?.leading_action ? actionName(state.leading_action) : (state ? "公开领出动作将在这里显示" : "平台公开信息将在这里显示");
   $("hand-title").textContent = ui.session ? `座位 ${seat} · 本人手牌` : "当前座位手牌";
   $("hand-count").textContent = state ? `${state.self_hand.length} 张` : "— 张";
   if (!state) replace("self-hand", element("p", "empty-inline", ui.session ? "尚未收到本座位牌桌信息" : "选择运行和观察座位后查看手牌"));
@@ -289,18 +431,27 @@ async function pollState() {
   let sessionEpoch = ui.sessionEpoch;
   ui.pollBusy = true;
   try {
+    const wasActive = active(ui.run);
     const run = await api(runPath());
     if (runEpoch !== ui.runEpoch) return;
     ui.run = { ...ui.run, ...run };
     ui.runs = ui.runs.map((item) => item.run_id === ui.run.run_id ? { ...item, ...ui.run } : item);
     renderRun(); renderSessions();
+    if (wasActive && !active(ui.run) && ui.session) loadDecisions(true);
     if (!ui.session || ui.mode !== "table") return;
     sessionEpoch = ui.sessionEpoch;
     const result = await api(`${sessionPath()}/state`);
     if (runEpoch !== ui.runEpoch || sessionEpoch !== ui.sessionEpoch) return;
     if (result.session_id !== ui.session.session_id || result.run_id !== ui.run.run_id) return;
-    if (ui.view && result.view_version <= ui.view.view_version) return;
-    ui.view = result; renderTable();
+    const changed = !ui.view || result.view_version > ui.view.view_version;
+    if (changed) {
+      ui.historyNew = Boolean(ui.view && ui.decisions.length);
+      ui.view = result;
+      if (!ui.decisions.length && ui.historyStatus === "ready") loadDecisions(true);
+      renderDecisions();
+    }
+    // A successful unchanged snapshot also clears a previous transport error.
+    renderTable();
   } catch (error) {
     if (runEpoch === ui.runEpoch && sessionEpoch === ui.sessionEpoch) $("sync-label").textContent = `同步失败 · ${errorMessage(error)}`;
   } finally { ui.pollBusy = false; }
@@ -308,7 +459,16 @@ async function pollState() {
 function renderDecisions() {
   const list = $("decision-list");
   list.replaceChildren();
-  if (!ui.decisions.length) list.append(empty("暂无决策记录", "等待请求到达后，点击“刷新记录”查看。", true));
+  if (!ui.decisions.length) {
+    let title = "暂无决策记录", description = active(ui.run)
+      ? "本座位暂未记录决策，收到新的牌桌状态后会自动检查。" : "本座位没有可查询的决策记录。可切换座位或刷新记录。";
+    if (!ui.session) { title = "尚未选择座位"; description = "选择运行和观察座位后查看决策记录。"; }
+    else if (ui.historyStatus === "loading") { title = "正在读取决策记录…"; description = "正在查询当前座位的历史。"; }
+    else if (ui.historyStatus === "error") { title = "决策记录读取失败"; description = "点击“刷新记录”重试。"; }
+    else if (ui.historyStatus === "unavailable") { title = "较早记录暂不可查询"; description = "当前查询窗口存在缺口，请从可用记录继续或刷新重试。"; }
+    else if (ui.historyGap) { title = "可用尾部中没有决策"; description = "较早记录不可查询，不能据此认为本座位从未决策。"; }
+    list.append(empty(title, description, true));
+  }
   for (const item of ui.decisions) {
     const button = element("button", `decision-row${item.request_id === ui.selectedRequest ? " selected" : ""}`);
     button.setAttribute("aria-label", `查看第 ${item.round_id} 局 ${item.request_id.split(":").at(-1)} 决策，${name(item.source)}，${name(item.execution_status)}`);
@@ -320,34 +480,58 @@ function renderDecisions() {
   }
   $("history-count").textContent = `${ui.decisions.length} 条记录`;
   $("refresh-decisions").disabled = !ui.session || ui.decisionsBusy;
+  $("more-decisions").disabled = ui.decisionsBusy || !ui.historyMore;
+  const notes = [];
+  if (ui.historyGap) notes.push("记录覆盖存在缺口，当前可用记录不代表完整历史。");
+  if (ui.historyError) notes.push(errorMessage(ui.historyError));
+  if (ui.historyNew) notes.push("牌桌状态已有更新，可点击“刷新记录”查看最新决策。");
+  $("history-message").textContent = notes.join(" ");
+  $("history-message").hidden = !notes.length;
+  $("recover-history").hidden = !(ui.historyStatus === "unavailable" && ui.retainedFrom > ui.cursor + 1);
+  $("recover-history").disabled = ui.decisionsBusy;
 }
 async function loadDecisions(reset = false, forcedCursor) {
   if (!ui.session || ui.decisionsBusy) return;
   const runEpoch = ui.runEpoch, sessionEpoch = ui.sessionEpoch;
   ui.decisionsBusy = true;
-  if (reset) { ui.decisions = []; ui.cursor = 0; }
+  if (reset) {
+    ui.decisions = []; ui.cursor = 0;
+    ui.historyGap = forcedCursor != null && forcedCursor > 0;
+    ui.retainedFrom = 1;
+  }
   if (forcedCursor != null) ui.cursor = forcedCursor;
-  $("more-decisions").disabled = true; $("refresh-decisions").disabled = true;
-  const note = $("history-message"); note.hidden = true; $("recover-history").hidden = true;
+  ui.historyStatus = "loading"; ui.historyError = null; ui.historyNew = false; ui.historyMore = false;
+  renderDecisions();
   try {
-    const result = await api(`${sessionPath()}/decisions?after_seq=${ui.cursor}&limit=30`);
+    let result;
+    // A moving live tail may require another cursor, but never retry indefinitely.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        result = await api(`${sessionPath()}/decisions?after_seq=${ui.cursor}&limit=30`);
+        break;
+      } catch (error) {
+        if (runEpoch !== ui.runEpoch || sessionEpoch !== ui.sessionEpoch) return;
+        const retained = error.retained_from_seq;
+        if (error.status === 410) {
+          ui.historyGap = true;
+          if (Number.isInteger(retained) && retained >= 1) ui.retainedFrom = retained;
+        }
+        if (error.status !== 410 || !Number.isInteger(retained) || retained - 1 <= ui.cursor || attempt === 2) throw error;
+        ui.cursor = retained - 1;
+      }
+    }
     if (runEpoch !== ui.runEpoch || sessionEpoch !== ui.sessionEpoch) return;
     const known = new Set(ui.decisions.map((item) => item.request_id));
     ui.decisions.push(...(result.items || []).filter((item) => !known.has(item.request_id)));
     ui.cursor = result.next_after_seq ?? ui.cursor;
     ui.retainedFrom = result.retained_from_seq ?? 1;
-    $("more-decisions").disabled = !result.has_more;
-    if (result.log_complete === false) { note.textContent = "记录不完整，当前列表可能存在缺口。"; note.hidden = false; }
+    ui.historyMore = result.has_more === true;
+    ui.historyStatus = "ready";
+    ui.historyGap = ui.historyGap || result.log_complete === false;
   } catch (error) {
     if (runEpoch !== ui.runEpoch || sessionEpoch !== ui.sessionEpoch) return;
-    note.textContent = error.status === 410 ? "较早记录已超出可查询窗口，不能将当前尾部视为完整历史。" : errorMessage(error);
-    note.hidden = false;
-    if (error.status === 410) {
-      if (Number.isInteger(error.retained_from_seq) && error.retained_from_seq >= 1) {
-        ui.retainedFrom = error.retained_from_seq;
-        $("recover-history").hidden = false;
-      }
-    }
+    ui.historyStatus = error.status === 410 ? "unavailable" : "error";
+    ui.historyError = error;
   } finally {
     if (runEpoch === ui.runEpoch && sessionEpoch === ui.sessionEpoch) { ui.decisionsBusy = false; renderDecisions(); }
   }
@@ -423,11 +607,11 @@ function decisionView(data, { sessionId, requestId, seat, fromReport = false }) 
       row.append(heading);
       const legal = (data.candidate_actions || []).find((action) => action.action_id === candidate.action_id);
       if (legal?.wire_action) {
-        row.append(element("p", "muted", `${legal.wire_action[0]} · ${legal.wire_action[1]}`), actionCards(legal.wire_action, true));
+        row.append(element("p", "muted", actionName(legal.wire_action)), actionCards(legal.wire_action, true));
       }
       const fields = Object.entries(candidate.features || {}).map(([key, value]) => `${featureLabels[key] || key} ${valueText(value)}`);
       row.append(element("div", "candidate-features", fields.join(" · ") || "特征未知"));
-      row.append(element("div", "candidate-reasons", `保留原因：${valueText(candidate.keep_reasons)}`));
+      row.append(element("div", "candidate-reasons", `保留原因：${valueText(candidate.keep_reasons?.map(name))}`));
       list.append(row);
     }
     candidates.append(list);
@@ -468,27 +652,131 @@ function setMode(mode) {
   $("table-view").hidden = mode !== "table"; $("reports-view").hidden = mode !== "reports";
   $("table-tab").classList.toggle("active", mode === "table"); $("reports-tab").classList.toggle("active", mode === "reports");
   $("table-tab").setAttribute("aria-pressed", String(mode === "table")); $("reports-tab").setAttribute("aria-pressed", String(mode === "reports"));
-  $("workspace-title").textContent = mode === "table" ? "对局工作台" : "已生成复盘";
+  $("workspace-title").textContent = mode === "table" ? "对局工作台" : "复盘与统计";
   if (mode === "reports") loadReports(); else pollState();
 }
-async function loadReports() {
-  const epoch = ++ui.reportEpoch, runEpoch = ui.runEpoch;
+function renderReportList(result) {
+  const list = $("report-list"); list.replaceChildren();
+  if (!result.items?.length) list.append(empty("尚未生成报告",
+    active(ui.run) ? "运行结束后可生成统计报告。" : ui.reportGenerationEnabled
+      ? "可生成统计报告查看对局汇总，或选择座位生成模型复盘。"
+      : ui.reportGenerationEnabled === false ? "此演示归档没有已有报告。" : "可刷新报告目录；报告生成能力尚未加载。", true));
+  for (const report of result.items || []) {
+    const button = element("button", `report-button${report.report_id === ui.report?.report_id ? " selected" : ""}`);
+    button.title = report.report_id;
+    button.append(element("strong", "", `${report.kind === "review" ? "复盘报告" : name(report.kind)} · ${short(report.report_id, 12)}`), element("small", "", timestamp(report.created_at)), badge(name(report.status), toneFor(report.status)));
+    button.addEventListener("click", () => { for (const sibling of list.querySelectorAll("button")) sibling.classList.remove("selected"); button.classList.add("selected"); openReport(report.report_id); });
+    list.append(button);
+  }
+  if (result.log_complete === false) list.append(element("p", "error-text", "源运行记录不完整"));
+  for (const error of result.errors || []) list.append(errorLine(error));
+}
+async function loadReports({ refresh = false, afterAction = false } = {}) {
+  if (ui.reportActionBusy && !afterAction) return;
+  const epoch = ++ui.reportListEpoch, runEpoch = ui.runEpoch;
   if (!ui.run) { replace("report-list", empty("暂无运行", "先选择一个已有运行。", true)); return; }
+  if (refresh) { ui.reportActionBusy = true; updateControls(); }
   replace("report-list", empty("正在读取…", "", true));
   try {
-    const result = await api(`${runPath()}/reports`);
-    if (epoch !== ui.reportEpoch || runEpoch !== ui.runEpoch) return;
-    const list = $("report-list"); list.replaceChildren();
-    if (!result.items?.length) list.append(empty("尚无报告", "报告需由离线复盘流程生成。", true));
-    for (const report of result.items || []) {
-      const button = element("button", "report-button");
-      button.append(element("strong", "", `${report.kind === "review" ? "复盘报告" : name(report.kind)} · ${report.report_id}`), element("small", "", timestamp(report.created_at)), badge(name(report.status), toneFor(report.status)));
-      button.addEventListener("click", () => { for (const sibling of list.querySelectorAll("button")) sibling.classList.remove("selected"); button.classList.add("selected"); openReport(report.report_id); });
-      list.append(button);
+    const result = await api(`${runPath()}/reports${refresh ? "/refresh" : ""}`, refresh ? { method: "POST", body: "{}" } : {});
+    if (epoch !== ui.reportListEpoch || runEpoch !== ui.runEpoch) return;
+    renderReportList(result);
+  } catch (error) {
+    if (epoch === ui.reportListEpoch && runEpoch === ui.runEpoch) {
+      const title = error.code === "RUN_NOT_CLOSED" ? "运行尚未关闭"
+        : error.code === "RECORD_NOT_REGISTERED" ? "归档尚未就绪"
+        : error.code === "REPORT_BUSY" ? "报告操作进行中" : "报告列表不可读取";
+      displayError($("report-list"), error, title);
     }
-    if (result.log_complete === false) list.append(element("p", "error-text", "源运行记录不完整"));
-    for (const error of result.errors || []) list.append(errorLine(error));
-  } catch (error) { if (epoch === ui.reportEpoch && runEpoch === ui.runEpoch) displayError($("report-list"), error, error.status === 409 ? "运行尚未关闭" : "报告列表不可读取"); }
+  } finally {
+    if (refresh && runEpoch === ui.runEpoch) { ui.reportActionBusy = false; updateControls(); }
+  }
+}
+async function generateReport() {
+  if ($("generate-report").disabled || !ui.run) return;
+  const runEpoch = ui.runEpoch, detailEpoch = ui.reportDetailEpoch;
+  ui.reportActionBusy = true; updateControls();
+  const status = $("report-action-status");
+  status.hidden = false; status.className = "inline-message";
+  status.textContent = "正在根据记录生成统计报告… 模型调用 0 次。";
+  closeEvidence();
+  try {
+    const report = await api(`${runPath()}/reports/evaluate`, { method: "POST", body: "{}" });
+    if (runEpoch !== ui.runEpoch) return;
+    status.textContent = "统计报告已生成 · 本次模型调用 0 次。";
+    if (detailEpoch === ui.reportDetailEpoch) {
+      ui.reportDetailEpoch += 1;
+      ui.report = report;
+      renderReport(report);
+    }
+    await loadReports({ afterAction: true });
+  } catch (error) {
+    if (runEpoch === ui.runEpoch) { status.textContent = `统计报告生成失败 · ${errorMessage(error)}`; status.className = "inline-message error-text"; }
+  } finally {
+    if (runEpoch === ui.runEpoch) { ui.reportActionBusy = false; updateControls(); }
+  }
+}
+async function generateModelReview() {
+  if ($("generate-model-review").disabled || !ui.run) return;
+  const runId = ui.run.run_id, sessionId = ui.reviewSessionId;
+  if (!ui.run.sessions.some((session) => session.session_id === sessionId)) return;
+  const watchRunEpoch = ui.runEpoch, detailEpoch = ui.reportDetailEpoch;
+  ui.reviewStarting = true; ui.reviewErrors.delete(runId); updateControls();
+  try {
+    const task = await api(`/runs/${encodeURIComponent(runId)}/reports/review`, {
+      method: "POST", body: JSON.stringify({ session_id: sessionId }),
+    });
+    if (task.source_run_id !== runId) throw new Error("返回的复盘任务与源运行不一致。");
+    const record = rememberReviewTask(task, sessionId);
+    record.watchRunEpoch = watchRunEpoch; record.detailEpoch = detailEpoch;
+    persistReviewTasks();
+  } catch (error) {
+    ui.reviewErrors.set(runId, `模型复盘未能创建 · ${errorMessage(error)}`);
+  } finally {
+    ui.reviewStarting = false; updateControls();
+    // A read can recover an accepted task after a lost response; it never retries POST.
+    await loadReviewCapabilities();
+  }
+}
+async function presentReviewResult(record) {
+  const task = record.task, runEpoch = ui.runEpoch;
+  if (!task.report_ready || !task.report_id || ui.run?.run_id !== task.source_run_id
+      || record.presentedEpoch === runEpoch || ui.reportActionBusy) return;
+  record.presentedEpoch = runEpoch;
+  await loadReports();
+  if (runEpoch !== ui.runEpoch || ui.reviewTasks.get(task.source_run_id) !== record) return;
+  const sameSeat = Boolean(record.sessionId) && record.sessionId === ui.reviewSessionId;
+  if (record.watchRunEpoch === runEpoch && record.detailEpoch === ui.reportDetailEpoch && sameSeat) {
+    await openReport(task.report_id, { reviewSessionId: record.sessionId });
+  }
+}
+async function pollReviewTasks() {
+  if (ui.reviewPollBusy) return;
+  ui.reviewPollBusy = true;
+  try {
+    for (const record of [...ui.reviewTasks.values()]) {
+      const task = record.task;
+      if (reviewPending(task)) {
+        try {
+          const result = await api(`/runs/${encodeURIComponent(task.source_run_id)}/reports/review-tasks/${encodeURIComponent(task.task_id)}`);
+          if (ui.reviewTasks.get(task.source_run_id) !== record || result.task_id !== task.task_id || result.source_run_id !== task.source_run_id) continue;
+          record.task = result; record.pollError = "";
+          if (result.report_ready || result.status === "failed") await loadReviewCapabilities();
+        } catch (error) {
+          if (ui.reviewTasks.get(task.source_run_id) !== record) continue;
+          record.pollError = `任务状态读取失败 · ${errorMessage(error)}`;
+          if (error.status === 404) {
+            record.task = { ...task, status: "failed", error: { safe_message: "任务状态已失效，可刷新报告目录查找已保存的报告。" } };
+            await loadReviewCapabilities();
+          }
+        }
+      }
+      await presentReviewResult(record);
+    }
+  } finally {
+    ui.reviewPollBusy = false;
+    renderReviewControls();
+  }
 }
 function factBlock(title, value, later = false) {
   const block = element("div", `report-fact${later ? " later" : ""}`);
@@ -524,7 +812,7 @@ function renderReport(report) {
       button.addEventListener("click", () => openEvidence(report, item));
       heading.append(button); entry.append(heading);
       const programFacts = item.facts_source === "program";
-      const verifiedFacts = programFacts && item.facts_verified === true && report.generation?.prompt_version === "b09-offline-v2";
+      const verifiedFacts = programFacts && item.facts_verified === true && ["b09-offline-v2", "b09-offline-v3"].includes(report.generation?.prompt_version);
       const factsLabel = verifiedFacts ? "程序提取 · 已与源记录核对" : programFacts ? "声明为程序提取 · 未通过源记录核验" : "模型归纳 · 未核验";
       if (programFacts && !verifiedFacts) entry.append(element("div", "message warning", "本条目声明的程序事实未通过源记录核验，原文仅供查看，不能当作已核验事实。"));
       entry.append(factBlock(`当时事实 · ${factsLabel}`, item.at_time_facts), factBlock(`事后事实 · ${factsLabel} · 当时不可知`, item.later_facts, true), factBlock("模型分析 · 仍可能出错", item.assessment), factBlock("模型建议 · 待验证", item.suggestion));
@@ -537,23 +825,43 @@ function renderReport(report) {
       body.append(entry);
     });
   } else {
-    for (const [key, title] of [["cohort", "评测条件"], ["counts", "样本与结算"], ["performance", "表现"], ["latency", "延迟"], ["model_usage", "模型用量"], ["quality", "数据质量"]]) {
-      const block = element("section", "report-entry");
-      block.append(element("h4", "", title), element("pre", "json-data", valueText(report[key]))); body.append(block);
+    body.append(element("p", "report-intro", "程序根据对局记录汇总。需要决策分析，可生成模型复盘。"));
+    const counts = report.counts || {}, rate = report.performance?.win_rate;
+    const usage = report.model_usage?.online || {};
+    const summary = section("关键统计");
+    summary.append(dataGrid([
+      ["样本单位", report.unit === "match" ? "整场" : report.unit === "round" ? "小局" : "—"],
+      ["开始 / 已结算", `${valueText(counts.started)} / ${valueText(counts.settled)}`],
+      ["胜 / 负 / 平", `${valueText(counts.win)} / ${valueText(counts.loss)} / ${valueText(counts.draw)}`],
+      ["已结算样本胜率", typeof rate?.value === "number" ? `${(rate.value * 100).toFixed(1)}%（${valueText(rate.numerator)} / ${valueText(rate.denominator)}）` : "—"],
+      ["待结算 / 中断", `${valueText(counts.pending)} / ${valueText(counts.interrupted)}`],
+      ["原对局模型调用", usage.calls_started?.value],
+      ["原对局总 Tokens", usage.total_tokens?.value],
+      ["数据完整性", report.quality?.metrics_complete === true ? "统计所需记录完整" : report.quality?.metrics_complete === false ? "存在缺口，部分指标未知" : "—"],
+    ]));
+    summary.append(element("p", "muted", "未知指标保留为 —；胜率只以已有明确结算为分母。"));
+    body.append(summary);
+    for (const [key, title] of [["cohort", "评测条件"], ["counts", "样本与结算"], ["performance", "表现"], ["latency", "延迟"], ["model_usage", "原对局模型用量"], ["quality", "数据质量"]]) {
+      const block = element("details", "report-entry report-data");
+      block.append(element("summary", "", `${title} · 查看明细`), element("pre", "json-data", valueText(report[key]))); body.append(block);
     }
   }
   if (report.usage) body.append(element("p", "report-intro", `本报告用量 · Tokens ${valueText(report.usage.total_tokens)} · 成本 ${valueText(report.usage.cost_amount)}${report.usage.currency ? ` ${report.usage.currency}` : ""}`));
   for (const error of report.errors || []) body.append(errorLine(error));
 }
-async function openReport(reportId) {
-  const epoch = ++ui.reportEpoch, runEpoch = ui.runEpoch;
+async function openReport(reportId, { reviewSessionId = null } = {}) {
+  const epoch = ++ui.reportDetailEpoch, runEpoch = ui.runEpoch;
   ui.report = null; closeEvidence();
   replace("report-body", empty("正在读取报告…", "", true));
   try {
     const report = await api(`${runPath()}/reports/${encodeURIComponent(reportId)}`);
-    if (epoch !== ui.reportEpoch || runEpoch !== ui.runEpoch) return;
+    if (epoch !== ui.reportDetailEpoch || runEpoch !== ui.runEpoch) return;
+    if (reviewSessionId && reviewSessionId !== ui.reviewSessionId) {
+      replace("report-body", empty("复盘已生成", "复盘座位已切换，可从报告目录查看刚生成的原座位报告。"));
+      return;
+    }
     ui.report = report; renderReport(report);
-  } catch (error) { if (epoch === ui.reportEpoch && runEpoch === ui.runEpoch) displayError($("report-body"), error, "报告不可读取"); }
+  } catch (error) { if (epoch === ui.reportDetailEpoch && runEpoch === ui.runEpoch) displayError($("report-body"), error, "报告不可读取"); }
 }
 function closeEvidence() {
   ui.evidenceEpoch += 1;
@@ -605,8 +913,21 @@ $("reports-tab").addEventListener("click", () => setMode("reports"));
 $("refresh-decisions").addEventListener("click", () => loadDecisions(true));
 $("more-decisions").addEventListener("click", () => loadDecisions());
 $("recover-history").addEventListener("click", () => loadDecisions(true, Math.max(0, ui.retainedFrom - 1)));
-$("refresh-reports").addEventListener("click", loadReports);
+$("refresh-reports").addEventListener("click", () => loadReports({ refresh: true }));
+$("generate-report").addEventListener("click", generateReport);
+$("generate-model-review").addEventListener("click", generateModelReview);
+$("review-session-select").addEventListener("change", (event) => {
+  ui.reviewSessionId = event.target.value;
+  ui.reviewSessionManual = true;
+  renderReviewControls();
+});
+$("open-model-review").addEventListener("click", () => {
+  const task = ui.reviewTasks.get(ui.run?.run_id)?.task;
+  if (task?.report_ready && task.report_id) openReport(task.report_id);
+});
 $("close-evidence").addEventListener("click", closeEvidence);
+restoreReviewTasks();
 renderTable();
 Promise.allSettled([loadConfigs(), loadRuns({ initial: true })]);
 setInterval(pollState, 1000);
+setInterval(pollReviewTasks, 1000);

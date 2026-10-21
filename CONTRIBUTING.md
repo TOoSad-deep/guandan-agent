@@ -12,7 +12,7 @@ uv run --locked pytest
 uv build
 ```
 
-首次安装与获取平台需要联网。测试不启动 Java、真实对局或模型请求；`tests/conftest.py` 会移除模型凭证并禁止网络连接。平台快照的两个正向测试需要预先获取固定源码。GitHub Actions 使用相同安装、获取、测试与打包流程；CI 不进行 Java 实局或模型效果验证。
+首次安装与获取平台需要联网。测试不启动真实对局或模型请求；已构建 Java 动作工具时会执行本地子进程检查。`tests/conftest.py` 会移除模型凭证并禁止网络连接，仅允许事件循环内部通信。平台快照的正向测试需要预先获取固定源码。GitHub Actions 在 Windows、macOS、Ubuntu 上安装 JDK 21、构建平台、运行测试并打包；CI 要求 Java 动作工具检查通过，但不进行 Java 实局或模型效果验证。Windows 环境与 UTF-8 设置见[快速开始](docs/快速开始.md)。
 
 排查某个模块时，可只运行相关文件，例如：
 

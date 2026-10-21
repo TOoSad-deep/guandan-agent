@@ -12,7 +12,7 @@
   <a class="skip-link" href="#workspace">跳到对局内容</a>
   <header class="site-header">
     <div class="brand"><span class="brand-icon" aria-hidden="true">♠</span><div><h1>掼蛋 <span>Agent</span></h1><p>看见每一步决策</p></div></div>
-    <nav aria-label="工作台视图" class="view-tabs"><button id="table-tab" class="tab active" aria-pressed="true">对局工作台</button><button id="reports-tab" class="tab" aria-pressed="false">已生成复盘</button></nav>
+    <nav aria-label="工作台视图" class="view-tabs"><button id="table-tab" class="tab active" aria-pressed="true">对局工作台</button><button id="reports-tab" class="tab" aria-pressed="false">复盘与统计</button></nav>
     <span class="local-badge"><i aria-hidden="true"></i>本地工作空间</span>
   </header>
 
@@ -56,9 +56,27 @@
       <aside class="panel detail-panel" aria-labelledby="detail-heading"><div class="panel-heading"><div><p class="eyebrow">DECISION INSPECTOR</p><h3 id="detail-heading">决策详情</h3></div><span class="detail-mark" aria-hidden="true">↗</span></div><div id="decision-detail" class="detail-content"><div class="empty-state"><span class="empty-symbol" aria-hidden="true">♧</span><h4>每一次选择，都有迹可循</h4><p>从左侧选择一条决策，查看候选动作、模型理由和服务端确认。</p><small>浏览记录不会触发模型调用或出牌。</small></div></div></aside>
     </section>
 
-    <section id="reports-view" class="reports-grid" aria-label="已生成复盘" hidden>
-      <aside class="panel report-index"><div class="panel-heading"><div><h3>报告目录</h3><p>读取已经生成的报告</p></div><button id="refresh-reports" class="text-button">刷新 ↻</button></div><div id="report-list" class="report-list"></div></aside>
-      <article class="panel report-panel"><div id="report-body" class="report-content"><div class="empty-state"><span class="empty-symbol" aria-hidden="true">▤</span><h3>让决策回到当时的情境</h3><p>选择已有报告，分别查看当时事实、事后结果、解释和建议。</p><small>此页面只读取报告，不生成新复盘。</small></div></div></article>
+    <section id="reports-view" class="reports-grid" aria-label="复盘与统计" hidden>
+      <aside class="panel report-index">
+        <div class="panel-heading"><div><h3>报告目录</h3><p>查看已有复盘与对局统计</p></div></div>
+        <div class="report-actions">
+          <button id="refresh-reports" class="button secondary">刷新报告 ↻</button>
+          <button id="generate-report" class="button primary" disabled>生成统计报告</button>
+          <p id="report-generation-hint" class="muted">生成统计报告 · 模型调用 0 次</p>
+          <div class="review-controls">
+            <label for="review-session-select">模型复盘座位</label>
+            <select id="review-session-select" disabled><option value="">请选择复盘座位</option></select>
+            <button id="generate-model-review" class="button primary" disabled>生成模型复盘</button>
+            <p id="model-review-hint" class="muted">模型复盘配置尚未加载。</p>
+          </div>
+        </div>
+        <div id="report-action-status" class="inline-message" role="status" aria-live="polite" hidden></div>
+        <div id="model-review-status" class="inline-message" role="status" aria-live="polite" hidden></div>
+        <button id="open-model-review" class="text-button review-result-link" hidden>查看生成的模型复盘 ↗</button>
+        <div id="report-list" class="report-list"></div>
+        <details class="report-help"><summary>模型复盘配置帮助</summary><p>网页复盘使用 <code>configs/web-review.toml</code> 的模型与调用额度。将密钥配置在 <code>.env</code>，然后启动：</p><code>uv run --locked --env-file .env guandan-agent serve</code><p>可用 <code>--review-config YOUR_CONFIG.toml</code> 指定 configs 目录中的配置。每次点击只创建一份复盘，失败不自动重试。</p></details>
+      </aside>
+      <article class="panel report-panel"><div id="report-body" class="report-content"><div class="empty-state"><span class="empty-symbol" aria-hidden="true">▤</span><h3>让决策回到当时的情境</h3><p>统计报告展示对局汇总；模型复盘分析所选座位的关键决策。</p><small>点击“生成模型复盘”才会调用模型。</small></div></div></article>
       <aside id="report-evidence-panel" class="panel detail-panel" hidden><div class="panel-heading"><div><p class="eyebrow">ORIGINAL EVIDENCE</p><h3>原决策证据</h3></div><button id="close-evidence" class="text-button">关闭</button></div><div id="report-decision-detail" class="detail-content"></div></aside>
     </section>
     <footer class="page-footer"><span>掼蛋 Agent · 课程项目</span><span>事实、模型判断与实际执行，分别呈现。</span></footer>

@@ -16,12 +16,19 @@ def test_demo_candidate_faces_and_report_links_come_from_selected_request(tmp_pa
         index = json.loads((FIXTURES / "fixture-index.json").read_text())
         sample = index["review_changed"]
         app = create_web_application(recording_root=tmp_path, allowed_config_names=(),
-                                     archive_root=FIXTURES)
+                                     archive_root=FIXTURES, allow_report_generation=False)
         async with app.router.lifespan_context(app):
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://127.0.0.1:8000") as client:
-                assert (await client.get("/api/v1/configs")).json() == {"items": []}
+                capabilities = (await client.get("/api/v1/configs")).json()
+                assert capabilities["items"] == []
+                assert capabilities["report_generation_enabled"] is False
+                assert capabilities["model_review"]["enabled"] is False
                 assert len((await client.get("/api/v1/runs")).json()["items"]) == 3
                 base = f"/api/v1/runs/{sample['run_id']}"
+                generation = await client.post(base + "/reports/evaluate", json={},
+                                               headers={"Origin": "http://127.0.0.1:8000"})
+                assert generation.status_code == 403
+                assert generation.json()["error"]["code"] == "REPORT_GENERATION_DISABLED"
                 detail = (await client.get(f"{base}/sessions/{sample['session_id']}/decisions/{sample['request_id']}")).json()
                 assert len(detail["candidate_actions"]) == len(detail["candidates"]["candidates"]) == 4
                 assert {a["action_id"] for a in detail["candidate_actions"]} == {c["action_id"] for c in detail["candidates"]["candidates"]}

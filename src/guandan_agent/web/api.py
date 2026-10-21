@@ -19,6 +19,7 @@ from guandan_agent.config import RunConfig
 from guandan_agent.contracts import ErrorInfo
 from guandan_agent.runtime.manager import RunManagerError
 from guandan_agent.recording.query import QueryError
+from guandan_agent.web.review import disabled_capabilities
 
 
 _STATIC = Path(__file__).with_name("static")
@@ -67,6 +68,11 @@ class _StartBody(BaseModel):
 
 class _StopBody(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
+
+
+class _ReviewBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    session_id: Annotated[str, Field(min_length=1, max_length=160)]
 
 
 class _SafeRoute(APIRoute):
@@ -130,6 +136,8 @@ class _LocalBoundary:
 def create_web_app(*, manager: Any, queries: Any,
                    allowed_configs: Mapping[str, RunConfig], reports: Any,
                    host: str = "127.0.0.1", port: int = 8000,
+                   allow_report_generation: bool = True,
+                   model_reviews: Any = None,
                    lifespan: Any = None) -> FastAPI:
     """Build inert routes. The composition root owns startup/shutdown resources.
 
@@ -176,7 +184,9 @@ def create_web_app(*, manager: Any, queries: Any,
         return {"items": [{"config_name": name,
                            "policy": "/".join(sorted({seat.policy for seat in config.run.seats})),
                            "model_calls": config.batch.max_model_calls}
-                          for name, config in configs.items()]}
+                          for name, config in configs.items()],
+                "report_generation_enabled": allow_report_generation,
+                "model_review": disabled_capabilities() if model_reviews is None else model_reviews.capabilities()}
 
     @app.get("/api/v1/runs")
     async def list_runs() -> dict:
@@ -215,6 +225,30 @@ def create_web_app(*, manager: Any, queries: Any,
     async def report_list(run_id: str) -> Any:
         queries.closed_record(run_id)
         return reports.list(run_id)
+
+    @app.post("/api/v1/runs/{run_id}/reports/refresh")
+    async def refresh_reports(run_id: str, body: _StopBody) -> Any:
+        queries.closed_record(run_id)
+        return await reports.refresh(run_id)
+
+    @app.post("/api/v1/runs/{run_id}/reports/evaluate")
+    async def evaluate_report(run_id: str, body: _StopBody) -> Any:
+        if not allow_report_generation:
+            return _error(403, "REPORT_GENERATION_DISABLED", "Statistics generation is disabled for these read-only records.")
+        queries.closed_record(run_id)
+        return await reports.evaluate(run_id)
+
+    @app.post("/api/v1/runs/{run_id}/reports/review", status_code=202)
+    async def start_model_review(run_id: str, body: _ReviewBody) -> Any:
+        if model_reviews is None:
+            return _error(403, "MODEL_REVIEW_DISABLED", "本服务尚未配置网页模型复盘。")
+        return await model_reviews.start(run_id, body.session_id)
+
+    @app.get("/api/v1/runs/{run_id}/reports/review-tasks/{task_id}")
+    async def model_review_task(run_id: str, task_id: str) -> Any:
+        if model_reviews is None:
+            return _error(404, "REVIEW_TASK_NOT_FOUND", "该运行没有此复盘任务。")
+        return model_reviews.state(run_id, task_id)
 
     @app.get("/api/v1/runs/{run_id}/reports/{report_id}")
     async def report(run_id: str, report_id: str) -> Any:

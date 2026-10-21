@@ -93,6 +93,14 @@ class Reports:
         self.calls.append(("get", run_id, report_id))
         return {"report_id": report_id, "status": "partial", "entries": []}
 
+    async def refresh(self, run_id):
+        self.calls.append(("refresh", run_id))
+        return {"items": [], "log_complete": True}
+
+    async def evaluate(self, run_id):
+        self.calls.append(("evaluate", run_id))
+        return {"report_id": "fixed-evaluation", "kind": "evaluation"}
+
 
 def harness(**kwargs):
     manager, queries, reports = Manager(), Queries(), Reports()
@@ -123,7 +131,9 @@ def test_factory_and_read_requests_are_inert():
     app, manager, queries, reports, config = harness()
     assert manager.started == manager.stopped == queries.calls == reports.calls == []
     result = request(app, "GET", "/api/v1/configs")
-    assert result.json() == {"items": [{"config_name": "local.example.toml", "policy": "V0", "model_calls": 0}]}
+    assert result.json()["items"] == [{"config_name": "local.example.toml", "policy": "V0", "model_calls": 0}]
+    assert result.json()["report_generation_enabled"] is True
+    assert result.json()["model_review"]["enabled"] is False
     assert config.platform.url not in result.text
     assert "API_KEY" not in result.text
     for path in ["/api/v1/runs", ROOT, f"{SEAT}/state", f"{SEAT}/decisions", f"{SEAT}/decisions/{REQUEST}", f"{ROOT}/reports", f"{ROOT}/reports/fixture"]:
@@ -288,6 +298,55 @@ def test_reports_do_not_read_open_runs(path):
     response = request(app, "GET", path)
     assert_error(response, 409, "RUN_ACTIVE")
     assert reports.calls == []
+
+
+@pytest.mark.parametrize("operation", ["refresh", "evaluate"])
+def test_report_controls_require_closed_run_and_same_origin_empty_json(operation):
+    path = f"{ROOT}/reports/{operation}"
+    app, manager, queries, reports, _ = harness()
+    response = request(app, "POST", path, json={}, headers={"Origin": ORIGIN})
+    assert response.status_code == 200
+    assert reports.calls == [(operation, RUN)]
+    reports.calls.clear()
+
+    for body in ({"path": "/sensitive-value"}, {"model": "sensitive-value"}, []):
+        assert request(app, "POST", path, json=body, headers={"Origin": ORIGIN}).status_code == 422
+    assert_error(request(app, "POST", path, json={}), 403, "ORIGIN_FORBIDDEN")
+    assert_error(request(app, "POST", path, content="{}", headers={"Origin": ORIGIN, "Content-Type": "text/plain"}),
+                 422, "JSON_REQUIRED")
+    queries.closed = False
+    assert_error(request(app, "POST", path, json={}, headers={"Origin": ORIGIN}), 409, "RUN_ACTIVE")
+    assert reports.calls == manager.started == manager.stopped == []
+
+
+def test_read_only_report_capability_prevents_generation():
+    app, _, queries, reports, _ = harness(allow_report_generation=False)
+    assert request(app, "GET", "/api/v1/configs").json()["report_generation_enabled"] is False
+    assert_error(request(app, "POST", f"{ROOT}/reports/evaluate", json={}, headers={"Origin": ORIGIN}),
+                 403, "REPORT_GENERATION_DISABLED")
+    assert reports.calls == queries.calls == []
+
+
+def test_model_review_is_disabled_without_an_explicit_coordinator():
+    app, manager, queries, reports, _ = harness()
+    response = request(app, "POST", f"{ROOT}/reports/review", json={"session_id": SESSION},
+                       headers={"Origin": ORIGIN})
+    assert_error(response, 403, "MODEL_REVIEW_DISABLED")
+    task = request(app, "GET", f"{ROOT}/reports/review-tasks/unknown")
+    assert_error(task, 404, "REVIEW_TASK_NOT_FOUND")
+    assert manager.started == queries.calls == reports.calls == []
+
+
+@pytest.mark.parametrize("body", [{}, {"session_id": SESSION, "api_key": "sensitive-value"},
+                                  {"session_id": SESSION, "config_name": "x.toml"},
+                                  {"session_id": SESSION, "max_calls": 10},
+                                  {"session_id": True}, {"session_id": ""}, [], None])
+def test_model_review_body_cannot_supply_config_budget_or_credentials(body):
+    app, manager, queries, reports, _ = harness()
+    response = request(app, "POST", f"{ROOT}/reports/review", json=body, headers={"Origin": ORIGIN})
+    assert response.status_code == 422
+    assert "sensitive-value" not in response.text
+    assert manager.started == queries.calls == reports.calls == []
 
 
 @pytest.mark.parametrize("path", ["/.env", "/runs", "/configs/local.example.toml", "/api/v1/actions", "/api/v1/retry", "/api/v1/generate-report", "/static/.env", "/static/%2e%2e/%2e%2e/.env", "/openapi.json", "/docs"])

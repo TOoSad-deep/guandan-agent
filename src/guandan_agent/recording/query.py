@@ -141,6 +141,11 @@ class QueryService:
             raise QueryError("RUN_NOT_CLOSED", 409, "Reports require a closed recording.")
         return archive.record
 
+    def archive_path(self, run_id: str) -> Path:
+        """Return only a server-registered closed archive's canonical path."""
+        self.closed_record(run_id)
+        return next(path for path, registered in self._paths.items() if registered == run_id)
+
     def _session(self, run_id: str, session_id: str) -> RunSessionView:
         view = self.view(run_id)
         for session in view.sessions:
@@ -150,30 +155,34 @@ class QueryService:
 
     def _events(self, run_id: str, session_id: str) -> tuple[tuple[LogEvent, ...], int, bool]:
         owner = self._session(run_id, session_id)
+        archive = self._archives.get(run_id)
         try:
-            return self.manager.query_snapshot(run_id, session_id)
+            # The recorder's small live window remains authoritative until the
+            # run is closed. Once registered, its archive serves list/detail
+            # queries even while the completed run still lives in the manager.
+            if archive is None or not self.manager.is_closed(run_id):
+                return self.manager.query_snapshot(run_id, session_id)
         except RunManagerError as exc:
-            archive = self._archives.get(run_id)
             if archive is None:
                 raise _manager_error(exc) from None
-            return (tuple(event for event in archive.events.get(session_id, ())
-                          if event.seat == owner.seat),
-                    archive.record.retained_from_seq, archive.view.log_complete)
+        return (tuple(event for event in archive.events.get(session_id, ())
+                      if event.seat == owner.seat),
+                archive.record.retained_from_seq, archive.view.log_complete)
 
     def decisions(self, run_id: str, session_id: str, after_seq: int = 0,
                   limit: int = 50) -> DecisionPage:
         if type(after_seq) is not int or after_seq < 0 or type(limit) is not int or not 1 <= limit <= 200:
             raise QueryError("INVALID_QUERY", 422, "Pagination parameters are outside their bounds.")
         events, retained, complete = self._events(run_id, session_id)
-        if after_seq < retained - 1:
-            raise _history(retained)
         anchors = {event.request_id for event in events if event.event_type == "request_opened"}
         orphaned = [event for event in events if event.request_id is not None
                     and event.seq > after_seq and event.request_id not in anchors]
-        if orphaned:
+        if after_seq < retained - 1 or orphaned:
             # An absent request_opened is not an empty decision history. A
             # later execution/call must never be offered without its facts.
-            raise _history(max(retained, max(e.seq for e in orphaned) + 1))
+            # Give the first failed query a cursor past any truncated request
+            # instead of requiring a second identical recovery interaction.
+            raise _history(max(retained, max((e.seq + 1 for e in orphaned), default=retained)))
         opened = [event for event in events if event.event_type == "request_opened" and event.seq > after_seq]
         items = []
         for event in opened[:limit]:

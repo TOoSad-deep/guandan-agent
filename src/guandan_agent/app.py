@@ -12,6 +12,7 @@ from guandan_agent.clock import SystemClock
 from guandan_agent.config import RunConfig
 from guandan_agent.contracts import RunView
 from guandan_agent.hand import HandTools, JavaActionEngine
+from guandan_agent.java_runtime import java_executable
 from guandan_agent.platform.adapter import OpenGuanDanPlatform
 from guandan_agent.runtime.manager import RunManager
 from guandan_agent.runtime.manager import RunManagerError
@@ -28,9 +29,8 @@ def create_manager(*, recording_root: str | Path = "runs",
         project = Path(__file__).resolve().parents[2]
         engine = None
         if config.tools.deep_eval_limit:
-            local_jdk = Path("/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home/bin/java")
             engine = JavaActionEngine(project / "runtime/platform/workspace/guandan/target/guandan-java-action.jar",
-                                      java_executable=str(local_jdk) if local_jdk.is_file() else "java",
+                                      java_executable=java_executable(),
                                       clock=clock, cleanup_timeout_s=config.tools.engine_stop_grace_s)
         return HandTools(engine, clock=clock)
 
@@ -78,12 +78,15 @@ def create_web_application(*, recording_root: str | Path = "runs",
                            config_root: str | Path = "configs",
                            allowed_config_names: tuple[str, ...] = ("local.example.toml",),
                            archive_root: str | Path | None = None,
+                           allow_report_generation: bool = True,
+                           review_config_name: str | None = "web-review.toml",
                            host: str = "127.0.0.1", port: int = 8000):
     """Explicit local serving composition; no game or provider starts on import/GET."""
     from guandan_agent.config import load_config
     from guandan_agent.recording.query import QueryError, QueryService
     from guandan_agent.recording.reports import ReportStore
     from guandan_agent.web import create_web_app
+    from guandan_agent.web.review import WebReviews
 
     config_directory = Path(config_root).resolve()
     allowed = {}
@@ -94,9 +97,21 @@ def create_web_application(*, recording_root: str | Path = "runs",
         if path.is_symlink() or path.resolve().parent != config_directory:
             raise ValueError("Configuration must be inside its configured directory")
         allowed[name] = load_config(path)
+    review_config = None
+    if allow_report_generation and review_config_name is not None:
+        name = review_config_name
+        if not name or Path(name).name != name or "\\" in name or not name.endswith(".toml"):
+            raise ValueError("Only an explicit review configuration base name is allowed")
+        path = config_directory / name
+        if path.is_symlink() or path.resolve().parent != config_directory:
+            raise ValueError("Review configuration must be inside its configured directory")
+        if path.is_file():
+            review_config = load_config(path)
     manager = create_manager(recording_root=recording_root)
     queries = QueryService(manager)
     reports = ReportStore(queries)
+    model_reviews = WebReviews(manager, queries, reports, review_config,
+                               enabled=allow_report_generation)
     archive_directory = Path(archive_root if archive_root is not None else recording_root)
 
     @asynccontextmanager
@@ -113,17 +128,19 @@ def create_web_application(*, recording_root: str | Path = "runs",
                 web.state.archive_errors.append("ARCHIVE_UNAVAILABLE")
 
         # Only UUID run directories below the trusted server-side root. No HTTP
-        # path can choose a file; at most eight prior runs are loaded once.
+        # path can choose a file; at most eight recent runs are loaded once.
         paths = []
         if archive_directory.is_dir():
             for path in archive_directory.iterdir():
                 try:
                     if path.is_symlink() or not path.is_dir() or str(UUID(path.name)) != path.name:
                         continue
-                    paths.append(path)
+                    summary = path / "summary.json"
+                    modified = summary.stat().st_mtime_ns if summary.is_file() else path.stat().st_mtime_ns
+                    paths.append((modified, path))
                 except (ValueError, OSError):
                     continue
-        for path in sorted(paths, key=lambda p: p.name)[-8:]:
+        for _, path in sorted(paths, key=lambda item: (item[0], item[1].name))[-8:]:
             await register(path)
 
         async def collect_finished():
@@ -147,12 +164,16 @@ def create_web_application(*, recording_root: str | Path = "runs",
             if views:
                 await asyncio.gather(*(manager.wait(v.run_id) for v in views))
             await manager.close_reviews()
+            await model_reviews.close()
 
     web = create_web_app(manager=manager, queries=queries, allowed_configs=allowed,
-                         reports=reports, host=host, port=port, lifespan=lifespan)
+                         reports=reports, host=host, port=port, lifespan=lifespan,
+                         allow_report_generation=allow_report_generation,
+                         model_reviews=model_reviews)
     web.state.manager = manager
     web.state.queries = queries
     web.state.reports = reports
+    web.state.model_reviews = model_reviews
     return web
 
 

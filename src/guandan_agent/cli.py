@@ -46,6 +46,8 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument("--config-root", type=Path, default=Path("configs"))
     serve.add_argument("--allow-config", action="append", dest="allowed_configs",
                        help="允许页面启动的 TOML 文件基名；默认仅 local.example.toml")
+    serve.add_argument("--review-config", default="web-review.toml",
+                       help="页面模型复盘的固定配置基名；不存在时禁用模型复盘")
     review = commands.add_parser("review", help="检查已关闭源；显式 --live 才生成离线复盘")
     review.add_argument("path", type=Path, help="本批离线调用配置")
     review.add_argument("sources", nargs="+", type=Path)
@@ -81,6 +83,7 @@ def main(argv: list[str] | None = None) -> int:
                 recording_root=args.recording_root, config_root=args.config_root,
                 allowed_config_names=tuple(args.allowed_configs or ("local.example.toml",)),
                 archive_root=args.archive_root, host=args.host, port=args.port,
+                review_config_name=args.review_config,
             )
             uvicorn.run(application, host=args.host, port=args.port, workers=1, reload=False,
                         access_log=False)
